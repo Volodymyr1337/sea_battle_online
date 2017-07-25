@@ -180,6 +180,6 @@ public class Battleground : MonoBehaviour
         MeshRenderer mesh_renderer = GetComponent<MeshRenderer>();
         mesh_renderer.sharedMaterials[0].mainTexture = texture;
 
-        print("Battle coord " + x + ","+ y + " updated." + "Enemy hit is " + hit + " " + BitConverter.GetBytes(x).Length);
+        //print("Battle coord " + x + ","+ y + " updated." + "Enemy hit is " + hit + " " + BitConverter.GetBytes(x).Length);
     }
 }

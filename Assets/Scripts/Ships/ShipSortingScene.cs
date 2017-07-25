@@ -38,13 +38,17 @@ public class ShipSortingScene : MonoBehaviour
     public GameObject BattleSceneCanvas;    // ui боевой сцены
     public GameObject EnemyField;           // Поле врага
 
-    private GameObject gun = null;          // Прицел выбранного орудия
-
+    public GameObject Gun                   // Прицел выбранного орудия
+    {
+        get; private set;
+    }
     public Text WaitingText;                // поле с текстом ожидания другого игрока
 
     private void Start()
     {
         bg = battleGroundObj.GetComponent<Battleground>();
+
+        Gun = null;
 
         ShipFieldPos = new int[bg.size_X, bg.size_Y];
 
@@ -454,7 +458,7 @@ public class ShipSortingScene : MonoBehaviour
 
     private void GunAimMovements()   // передвижения прицела
     {
-        if (gun != null)
+        if (Gun != null)
         {
             Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             
@@ -462,17 +466,17 @@ public class ShipSortingScene : MonoBehaviour
             if (pos.x < EnemyField.transform.position.x || pos.x > (EnemyField.transform.position.x + bg.size_X) ||
                 pos.y < EnemyField.transform.position.y || pos.y > (EnemyField.transform.position.y + bg.size_Y))
             {
-                gun.transform.position = pos;
+                Gun.transform.position = pos;
                 return;
             }
             else
             {
-                gun.transform.position = GunAimMovementRounder(pos);
+                Gun.transform.position = GunAimMovementRounder(pos);
 
                 if (Input.GetMouseButtonUp(0))
                 {
-                    PoolManager.Instance.ReturnGun((int)Char.GetNumericValue(gun.name.ToCharArray(3, 1)[0]), gun);
-                    gun = null;
+                    PoolManager.Instance.ReturnGun((int)Char.GetNumericValue(Gun.name.ToCharArray(3, 1)[0]), Gun);
+                    Gun = null;
                 }
             }
         }
@@ -482,11 +486,11 @@ public class ShipSortingScene : MonoBehaviour
     {
         float kx = 0, ky = 0;
 
-        if (((int)gun.transform.localScale.y & 1) == 1)
+        if (((int)Gun.transform.localScale.y & 1) == 1)
             ky = (gunPosition.y - Mathf.Round(gunPosition.y) > 0) ? 0.5f : -0.5f;
         else
             ky = 0;
-        if (((int)gun.transform.localScale.x & 1) == 1)
+        if (((int)Gun.transform.localScale.x & 1) == 1)
             kx = (gunPosition.x - Mathf.Round(gunPosition.x) > 0) ? 0.5f : -0.5f;
         else
             kx = 0f;
@@ -520,11 +524,23 @@ public class ShipSortingScene : MonoBehaviour
     }
     public void OnChangeWeaponBtnId(int id)
     {
-        if (gun != null)
-            PoolManager.Instance.ReturnGun((int)Char.GetNumericValue(gun.name.ToCharArray(3, 1)[0]), gun);
+        if (Gun != null)
+            PoolManager.Instance.ReturnGun((int)Char.GetNumericValue(Gun.name.ToCharArray(3, 1)[0]), Gun);
 
-        gun = PoolManager.Instance.GetGun(id);
-        gun.SetActive(true);
+        Gun = PoolManager.Instance.GetGun(id);
+        Gun.SetActive(true);
+    }
+    //
+    // кнопка покинуть лобби
+    //
+    public void OnClickLeaveGame()
+    {
+        PhotonNetwork.LeaveRoom();
+
+        // исправить баг с невозможностью начинать игру после выхода в сцену с лобби!!
+        Destroy(PlayerNetwork.Instance.transform.parent.gameObject);
+        //---
+        PhotonNetwork.LoadLevel(0);
     }
 
 }
@@ -575,9 +591,9 @@ public struct ShipCoords
 
 public struct ShootingArea      // описывает квадрат поражения выбранного типа оружия
 {
-    public int sizeX, sizeY;
+    public float sizeX, sizeY;
 
-    public ShootingArea(int xs = 1, int ys = 1)
+    public ShootingArea(float xs = 1, float ys = 1)
     {
         sizeX = xs;
         sizeY = ys;

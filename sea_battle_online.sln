@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2017
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sea_battle_online", "sea_battle_online.csproj", "{2E2F52B8-BAD1-06D0-1B4E-C26A9CE99BA1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sea_battle_online.Plugins", "sea_battle_online.Plugins.csproj", "{C3CF11B8-425D-AF79-F8C2-8BB3314752AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "sea_battle_online.Editor", "sea_battle_online.Editor.csproj", "{15B7EB56-4673-5643-DCF3-ABFA78A12381}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2E2F52B8-BAD1-06D0-1B4E-C26A9CE99BA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E2F52B8-BAD1-06D0-1B4E-C26A9CE99BA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E2F52B8-BAD1-06D0-1B4E-C26A9CE99BA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E2F52B8-BAD1-06D0-1B4E-C26A9CE99BA1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3CF11B8-425D-AF79-F8C2-8BB3314752AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3CF11B8-425D-AF79-F8C2-8BB3314752AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3CF11B8-425D-AF79-F8C2-8BB3314752AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3CF11B8-425D-AF79-F8C2-8BB3314752AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{15B7EB56-4673-5643-DCF3-ABFA78A12381}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{15B7EB56-4673-5643-DCF3-ABFA78A12381}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{15B7EB56-4673-5643-DCF3-ABFA78A12381}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{15B7EB56-4673-5643-DCF3-ABFA78A12381}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

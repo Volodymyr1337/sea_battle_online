@@ -54,18 +54,20 @@ public class InitializeUser : Photon.MonoBehaviour
             Vector2 v2 = Input.mousePosition;
             v2 = Camera.main.ScreenToWorldPoint(v2);
 
+            
             // если курсор находится за пределами поля стрельбы - ничего не произойдет
             if (v2.x < ShipController.EnemyField.transform.position.x || v2.x > (ShipController.EnemyField.transform.position.x + enemyBg.size_X) || 
                 v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
                 return;
             
-            // -- !! работает неверно !! --
-            float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2 : PlayerNetwork.Instance.shootingArea.sizeX;
-            float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2 : PlayerNetwork.Instance.shootingArea.sizeY;
-            int xL = Mathf.RoundToInt(v2.x - ShipController.EnemyField.transform.position.x - kx);
-            int yL = Mathf.RoundToInt(v2.y - ky);
-            int xR = Mathf.RoundToInt(v2.x - ShipController.EnemyField.transform.position.x + kx);
-            int yR = Mathf.RoundToInt(v2.y + ky);
+            // -- !! работает кое как но для орудий с параметром "2" по широте/высоте проблемы... мб попробовать иф елс и Mathf.round !! --
+            float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
+            float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
+            // устанавливаем координаты левого нижнего и правого верхнего угла
+            int xL = (int)(v2.x - ShipController.EnemyField.transform.position.x - kx);
+            int yL = (int)(v2.y - ky);
+            int xR = (int)(v2.x - ShipController.EnemyField.transform.position.x + kx);
+            int yR = (int)(v2.y + ky);
             //------
 
             // страхуемся, при выходе за пределы избегаем обработки несуществующих координат
@@ -74,7 +76,7 @@ public class InitializeUser : Photon.MonoBehaviour
             xR = xR < 0 ? 0 : xR > (enemyBg.size_X - 1) ? (enemyBg.size_X - 1) : xR;
             yR = yR < 0 ? 0 : yR > (enemyBg.size_Y - 1) ? (enemyBg.size_Y - 1) : yR;
 
-            print(xL + " " + yL + " " + xR + " " + yR + " ");
+            print(v2.x + " к="+ kx + " \\ " + xL + " " + yL + " \\ " + v2.y + " \\ " + xR + " " + yR + " ");
 
             // записываем в порядке от левого нижнего угла к правому верхнему
             int packed_data = (xL << 12) | (yL << 8) | (xR << 4) | yR;
