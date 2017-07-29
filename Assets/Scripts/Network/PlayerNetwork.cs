@@ -18,6 +18,7 @@ public class PlayerNetwork : MonoBehaviour
         shootingArea = new ShootingArea();
         PhotonView = GetComponent<PhotonView>();
         PlayerName = "android#" + Random.Range(100, 999);
+
         SceneManager.sceneLoaded += OnSceneFinishedLoading;
     }
 

@@ -10,8 +10,8 @@ public class InitializeUser : Photon.MonoBehaviour
     public static int[,] ships;             // позиции кораблей
     ShipSortingScene ShipController;        // необходим для извлечения инфо о списке кораблей
 
-    public static bool isReady;     // нажата ли кнопка далее
-    private bool gameStart;         // старт игры когда все будут готовы
+    public static bool isReady;             // нажата ли кнопка далее
+    private bool gameStart;                 // старт игры когда все будут готовы
 
     private float timer = 2f;               // таймер для задержки на проверку готовы ли все игроки
 
@@ -68,6 +68,10 @@ public class InitializeUser : Photon.MonoBehaviour
             // -- !! работает кое как но для орудий с параметром "2" по широте/высоте проблемы... мб попробовать иф елс и Mathf.round !! --
             float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
             float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
+            if (PlayerNetwork.Instance.shootingArea.sizeX == 1)
+                kx = 0.5f;
+            if (PlayerNetwork.Instance.shootingArea.sizeY == 1)
+                ky = 0.5f;
             // устанавливаем координаты левого нижнего и правого верхнего угла
             int xL = (int)(v2.x - ShipController.EnemyField.transform.position.x - kx);
             int yL = (int)(v2.y - ky);
