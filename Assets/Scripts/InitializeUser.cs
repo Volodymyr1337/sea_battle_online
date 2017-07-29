@@ -10,8 +10,8 @@ public class InitializeUser : Photon.MonoBehaviour
     public static int[,] ships;             // позиции кораблей
     ShipSortingScene ShipController;        // необходим для извлечения инфо о списке кораблей
 
-    public static bool isReady = false;     // нажата ли кнопка далее
-    private bool gameStart = false;         // старт игры когда все будут готовы
+    public static bool isReady;     // нажата ли кнопка далее
+    private bool gameStart;         // старт игры когда все будут готовы
 
     private float timer = 2f;               // таймер для задержки на проверку готовы ли все игроки
 
@@ -23,6 +23,12 @@ public class InitializeUser : Photon.MonoBehaviour
     {
         PhotonView = GetComponent<PhotonView>();
         ShipController = FindObjectOfType<ShipSortingScene>();        
+    }
+
+    private void Start()
+    {
+        isReady = false;
+        gameStart = false;
     }
 
     private void Update()
@@ -42,19 +48,18 @@ public class InitializeUser : Photon.MonoBehaviour
             //gameStart = true;
             /* ---- ПОСЛЕ УДАЛИТЬ!! ---- */
         }
-
+        
         if (gameStart)
             ShootsFire();
     }
     
     private void ShootsFire()
-    {
-        if (PhotonView.isMine && Input.GetMouseButtonUp(0) && isReady)
+    {        
+        if (PhotonView.isMine && Input.GetMouseButtonUp(0))
         {
             Vector2 v2 = Input.mousePosition;
             v2 = Camera.main.ScreenToWorldPoint(v2);
 
-            
             // если курсор находится за пределами поля стрельбы - ничего не произойдет
             if (v2.x < ShipController.EnemyField.transform.position.x || v2.x > (ShipController.EnemyField.transform.position.x + enemyBg.size_X) || 
                 v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
@@ -100,7 +105,7 @@ public class InitializeUser : Photon.MonoBehaviour
         ShipController.BattleSceneCanvas.SetActive(true);
         ShipController.EnemyField.SetActive(true);
         ShipController.WaitingText.gameObject.SetActive(false);
-
+        
         gameStart = true;
 
         ShootingArea = new ShootingArea();  // по дефолту выстрелы размером 1х1

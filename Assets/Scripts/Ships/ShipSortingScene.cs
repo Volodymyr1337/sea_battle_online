@@ -503,6 +503,7 @@ public class ShipSortingScene : MonoBehaviour
     //
     public void NextButton()        
     {
+        Debug.Log(ShipListing.Count);
         if (ShipListing.Count < bg.size_X)     // если не все корабли на местах
             return;
         
@@ -536,11 +537,8 @@ public class ShipSortingScene : MonoBehaviour
     public void OnClickLeaveGame()
     {
         PhotonNetwork.LeaveRoom();
-
-        // исправить баг с невозможностью начинать игру после выхода в сцену с лобби!!
-        Destroy(PlayerNetwork.Instance.transform.parent.gameObject);
-        //---
-        PhotonNetwork.LoadLevel(0);
+               
+        PhotonNetwork.LoadLevel(1);
     }
 
 }

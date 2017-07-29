@@ -47,7 +47,7 @@ public class PlayerNetwork : MonoBehaviour
     [PunRPC]
     private void RPC_LoadGameOthers()
     {
-        PhotonNetwork.LoadLevel(1);
+        PhotonNetwork.LoadLevel(2);
     }
 
     [PunRPC]
@@ -58,6 +58,7 @@ public class PlayerNetwork : MonoBehaviour
         if (PlayersInGame == PhotonNetwork.playerList.Length)
         {
             print("all users in the game scene!");
+            PlayersInGame = 0;
             PhotonView.RPC("RPC_CreatePlayer", PhotonTargets.All);
         }
     }

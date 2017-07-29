@@ -4,12 +4,9 @@ public class LobbyNetwork : MonoBehaviour
 {
     private void Start()
     {
-        if (PhotonNetwork.connectionState != ConnectionState.Connected)
-        {
-            print("connecting to server...");
-            PhotonNetwork.ConnectUsingSettings("0.0.0");
-            PhotonNetwork.autoJoinLobby = false;
-        }
+        print("connecting to server...");
+        PhotonNetwork.ConnectUsingSettings("0.0.0");
+        PhotonNetwork.autoJoinLobby = false;
     }
 
     private void OnConnectedToMaster()
