@@ -18,7 +18,7 @@ public class InitializeUser : Photon.MonoBehaviour
 
     public static ShootingArea ShootingArea;
 
-    public static bool allowFire;
+    public static bool allowFire;           // доступность стрельбы в очереди
 
     private void Awake()
     {
@@ -30,7 +30,10 @@ public class InitializeUser : Photon.MonoBehaviour
     {
         isReady = false;
         gameStart = false;
-        allowFire = true;
+        if (PhotonNetwork.isMasterClient)
+            allowFire = true;
+        else
+            allowFire = false;
     }
 
     private void Update()
@@ -49,13 +52,7 @@ public class InitializeUser : Photon.MonoBehaviour
 
             //gameStart = true;
             /* ---- ПОСЛЕ УДАЛИТЬ!! ---- */
-        }
-        if (PhotonView.isMine && timer <= 0)
-        {
-            timer = 2f;
-            Debug.Log(allowFire);
-        }
-       
+        }       
 
         if (gameStart && allowFire)
             ShootsFire();
@@ -102,8 +99,7 @@ public class InitializeUser : Photon.MonoBehaviour
                 }
             if (((yR - yL) + 1) * ((xR - xL) + 1) == counter)
                 return;
-
-            Debug.Log("Fire now is" + allowFire);
+            
             allowFire = false;
 
             // записываем в порядке от левого нижнего угла к правому верхнему
@@ -229,6 +225,5 @@ public class InitializeUser : Photon.MonoBehaviour
     private void AllowFiring(bool allow)
     {
         allowFire = allow;
-        Debug.Log("Fire again!" + allowFire);
     }
 }
