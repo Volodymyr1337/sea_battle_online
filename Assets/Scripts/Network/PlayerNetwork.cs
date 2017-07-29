@@ -71,8 +71,6 @@ public class PlayerNetwork : MonoBehaviour
         PhotonNetwork.Instantiate("User", spawnPos, Quaternion.identity, 0);
     }
 
-
-
     public void RapidFire(int area)
     {
         int mask = 15;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Specialized;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -19,6 +18,8 @@ public class InitializeUser : Photon.MonoBehaviour
 
     public static ShootingArea ShootingArea;
 
+    public static bool allowFire;
+
     private void Awake()
     {
         PhotonView = GetComponent<PhotonView>();
@@ -29,6 +30,7 @@ public class InitializeUser : Photon.MonoBehaviour
     {
         isReady = false;
         gameStart = false;
+        allowFire = true;
     }
 
     private void Update()
@@ -48,8 +50,14 @@ public class InitializeUser : Photon.MonoBehaviour
             //gameStart = true;
             /* ---- ПОСЛЕ УДАЛИТЬ!! ---- */
         }
-        
-        if (gameStart)
+        if (PhotonView.isMine && timer <= 0)
+        {
+            timer = 2f;
+            Debug.Log(allowFire);
+        }
+       
+
+        if (gameStart && allowFire)
             ShootsFire();
     }
     
@@ -65,19 +73,18 @@ public class InitializeUser : Photon.MonoBehaviour
                 v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
                 return;
             
-            // -- !! работает кое как но для орудий с параметром "2" по широте/высоте проблемы... мб попробовать иф елс и Mathf.round !! --
             float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
             float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
-            if (PlayerNetwork.Instance.shootingArea.sizeX == 1)
-                kx = 0.5f;
-            if (PlayerNetwork.Instance.shootingArea.sizeY == 1)
-                ky = 0.5f;
+
+            // костыль для орудий с параметрами 2 по широте/высоте
+            if (PlayerNetwork.Instance.shootingArea.sizeX == 1) kx = 0.5f;
+            if (PlayerNetwork.Instance.shootingArea.sizeY == 1) ky = 0.5f;
+
             // устанавливаем координаты левого нижнего и правого верхнего угла
             int xL = (int)(v2.x - ShipController.EnemyField.transform.position.x - kx);
             int yL = (int)(v2.y - ky);
             int xR = (int)(v2.x - ShipController.EnemyField.transform.position.x + kx);
             int yR = (int)(v2.y + ky);
-            //------
 
             // страхуемся, при выходе за пределы избегаем обработки несуществующих координат
             xL = xL < 0 ? 0 : xL > (enemyBg.size_X - 1) ? (enemyBg.size_X - 1) : xL;
@@ -85,7 +92,19 @@ public class InitializeUser : Photon.MonoBehaviour
             xR = xR < 0 ? 0 : xR > (enemyBg.size_X - 1) ? (enemyBg.size_X - 1) : xR;
             yR = yR < 0 ? 0 : yR > (enemyBg.size_Y - 1) ? (enemyBg.size_Y - 1) : yR;
 
-            print(v2.x + " к="+ kx + " \\ " + xL + " " + yL + " \\ " + v2.y + " \\ " + xR + " " + yR + " ");
+            // проверка и запрет на стрельбу в уже обстрелянные координаты
+            int counter = 0;
+            for (int j = yL; j <= yR; j++)
+                for (int i = xL; i <= xR; i++)
+                {
+                    if (enemyBg.BattleFieldArray[i, j] == 1 || enemyBg.BattleFieldArray[i, j] == 0)
+                        counter++; 
+                }
+            if (((yR - yL) + 1) * ((xR - xL) + 1) == counter)
+                return;
+
+            Debug.Log("Fire now is" + allowFire);
+            allowFire = false;
 
             // записываем в порядке от левого нижнего угла к правому верхнему
             int packed_data = (xL << 12) | (yL << 8) | (xR << 4) | yR;
@@ -94,7 +113,7 @@ public class InitializeUser : Photon.MonoBehaviour
         }
     }
     //
-    // старт игры когда все игроки нажмут кнопку готовы
+    // старт игры когда все игроки нажмут кнопку "готовы"
     //
     [PunRPC]
     private void StartPlayChecking()
@@ -116,12 +135,13 @@ public class InitializeUser : Photon.MonoBehaviour
 
         enemyBg = GameObject.Find("Enemy_field").GetComponent<Battleground>();
     }
-    
-    [PunRPC]
+
+    // +++ ВЫСТРЕЛ +++
+    [PunRPC]        
     private void ModifiedFire(int packed_data)
     {
-        byte mask = 15;       // маска 0000 1111
-
+        byte mask = 15;         // маска 0000 1111
+        
         print("Hit area: " + ((packed_data >> 12) & mask) + ", " + ((packed_data >> 8) & mask) + " | " + ((packed_data >> 4) & mask) + ", " + (packed_data & mask));
 
         int xL = (packed_data >> 12) & mask;
@@ -130,6 +150,20 @@ public class InitializeUser : Photon.MonoBehaviour
         int yR = packed_data & mask;
 
         Battleground myBg = GameObject.Find("Battle_field").GetComponent<Battleground>();
+
+
+        allowFire = true;
+
+        for (int j = yL; j <= yR; j++)
+            for (int i = xL; i <= xR; i++)
+            {
+                if (ships[i, j] == 1)
+                {
+                    allowFire = false;
+                    photonView.RPC("AllowFiring", PhotonTargets.Others, true);
+                    break;                
+                }
+            }
 
         for (int j = yL; j <= yR; j++)
             for (int i = xL; i <= xR; i++)
@@ -190,5 +224,11 @@ public class InitializeUser : Photon.MonoBehaviour
         int Y = xy & mask;
 
         enemyBg.BattleFieldUpdater(X, Y, hit);
+    }
+    [PunRPC]
+    private void AllowFiring(bool allow)
+    {
+        allowFire = allow;
+        Debug.Log("Fire again!" + allowFire);
     }
 }

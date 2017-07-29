@@ -24,16 +24,27 @@ public class Battleground : MonoBehaviour
 
     public int tileResolution;
 
-    private int[,] battleFieldArray;        // -1 пустая ячейка, 1 - попадание, 0 - промах 
+    private int[,] _battleFieldArray;        // -1 пустая ячейка, 1 - попадание, 0 - промах 
+    public int[,] BattleFieldArray
+    {
+        get
+        {
+            return _battleFieldArray;
+        }
+        private set
+        {
+            _battleFieldArray = value;
+        }
+    }
 
     private void Awake()
     {
-        battleFieldArray = new int[size_X, size_Y];
+        BattleFieldArray = new int[size_X, size_Y];
 
         // заполняем карту
         for (int j = 0; j < size_Y; j++)
             for (int i = 0; i < size_X; i++)
-                battleFieldArray[i, j] = -1;
+                BattleFieldArray[i, j] = -1;
     }
 
     private void Start()
@@ -155,19 +166,19 @@ public class Battleground : MonoBehaviour
             for (int i = 0; i < size_X; i++)
             {
                 if (i == x && j == y)
-                    battleFieldArray[i, j] = hit ? 1 : 0;   // отмечаем попадание/промах
+                    BattleFieldArray[i, j] = hit ? 1 : 0;   // отмечаем попадание/промах
 
                 Color[] col;
 
                 if (gameObject.name == "Battle_field")
                 {
-                    col = battleFieldArray[i, j] == -1 ? noneTexture.GetPixels(0, 0, tileResolution, tileResolution) :
-                          battleFieldArray[i, j] == 1  ? hitTexture.GetPixels (0, 0, tileResolution, tileResolution) :
+                    col = BattleFieldArray[i, j] == -1 ? noneTexture.GetPixels(0, 0, tileResolution, tileResolution) :
+                          BattleFieldArray[i, j] == 1  ? hitTexture.GetPixels (0, 0, tileResolution, tileResolution) :
                                                          missTexture.GetPixels(0, 0, tileResolution, tileResolution);
                 }
                 else
-                    col = battleFieldArray[i, j] == -1 ? tileTexture.GetPixels(0, 0, tileResolution, tileResolution) :
-                          battleFieldArray[i, j] == 1  ? hitTexture.GetPixels (0, 0, tileResolution, tileResolution) :
+                    col = BattleFieldArray[i, j] == -1 ? tileTexture.GetPixels(0, 0, tileResolution, tileResolution) :
+                          BattleFieldArray[i, j] == 1  ? hitTexture.GetPixels (0, 0, tileResolution, tileResolution) :
                                                          missTexture.GetPixels(0, 0, tileResolution, tileResolution);
 
                 texture.SetPixels(i * tileResolution, j * tileResolution, tileResolution, tileResolution, col);

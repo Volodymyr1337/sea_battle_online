@@ -503,7 +503,6 @@ public class ShipSortingScene : MonoBehaviour
     //
     public void NextButton()        
     {
-        Debug.Log(ShipListing.Count);
         if (ShipListing.Count < bg.size_X)     // если не все корабли на местах
             return;
         
