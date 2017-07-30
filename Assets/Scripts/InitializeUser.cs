@@ -31,9 +31,16 @@ public class InitializeUser : Photon.MonoBehaviour
         isReady = false;
         gameStart = false;
         if (PhotonNetwork.isMasterClient)
+        {
+            ShipController.StepArrow.color = new Color(0f, 255f, 0f);
             allowFire = true;
+        }            
         else
+        {
+            ShipController.StepArrow.color = new Color(255f, 0f, 0f);
             allowFire = false;
+        }
+            
     }
 
     private void Update()
@@ -101,6 +108,7 @@ public class InitializeUser : Photon.MonoBehaviour
                 return;
             
             allowFire = false;
+            ShipController.StepArrow.color = new Color(255f, 0f, 0f);
 
             // записываем в порядке от левого нижнего угла к правому верхнему
             int packed_data = (xL << 12) | (yL << 8) | (xR << 4) | yR;
@@ -124,7 +132,7 @@ public class InitializeUser : Photon.MonoBehaviour
         ShipController.BattleSceneCanvas.SetActive(true);
         ShipController.EnemyField.SetActive(true);
         ShipController.WaitingText.gameObject.SetActive(false);
-        
+        ShipController.StepArrow.gameObject.SetActive(true);
         gameStart = true;
 
         ShootingArea = new ShootingArea();  // по дефолту выстрелы размером 1х1
@@ -149,18 +157,22 @@ public class InitializeUser : Photon.MonoBehaviour
 
 
         allowFire = true;
+        ShipController.StepArrow.color = new Color(0f, 255f, 0f);
 
+        // стрельба запрещена, если есть хоть одно попадание
         for (int j = yL; j <= yR; j++)
             for (int i = xL; i <= xR; i++)
             {
                 if (ships[i, j] == 1)
                 {
                     allowFire = false;
+                    ShipController.StepArrow.color = new Color(255f, 0f, 0f);
                     photonView.RPC("AllowFiring", PhotonTargets.Others, true);
                     break;                
                 }
             }
-
+        
+        // отправляем информацию о попаданиях/промахах
         for (int j = yL; j <= yR; j++)
             for (int i = xL; i <= xR; i++)
             {
@@ -222,8 +234,9 @@ public class InitializeUser : Photon.MonoBehaviour
         enemyBg.BattleFieldUpdater(X, Y, hit);
     }
     [PunRPC]
-    private void AllowFiring(bool allow)
+    private void AllowFiring(bool allow)    // разрешаем/запрещаем стрельбу
     {
         allowFire = allow;
+        ShipController.StepArrow.color = new Color(0f, 255f, 0f);
     }
 }
