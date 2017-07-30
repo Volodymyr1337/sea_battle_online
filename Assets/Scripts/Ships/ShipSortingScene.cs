@@ -10,7 +10,7 @@ public class ShipSortingScene : MonoBehaviour
 {
     public static Transform ship = null;    // корабль в который тыцнули мышью
     List<Transform> _shipCoords = new List<Transform>();
-    
+
     bool move = false;                      // контроль передвижений
 
     bool firstClick = true;                 // Контроль первого нажатия на кнопку авторазмещения
@@ -19,7 +19,7 @@ public class ShipSortingScene : MonoBehaviour
     public GameObject battleGroundObj;      // Полевая сетка, необходимо для 
     Battleground bg;                        // координатного размещения кораблей (Центр в [0,0])
     BoxCollider2D shipCol = null;           // Для последующей идентификации размера коллайдера
-    float kX =0f, kY = 0f;                  // коеф для поправки положения курсора и положения коробля на поле
+    float kX = 0f, kY = 0f;                  // коеф для поправки положения курсора и положения коробля на поле
     public static bool Landing = true;      // контроль возможности посадки корабля
     bool onTheField = false;                // нахождение корабля над игровым полем
     bool OutOfMapRange = false;             // если края корабля выходят за пределы поля
@@ -37,6 +37,8 @@ public class ShipSortingScene : MonoBehaviour
     public GameObject SetShipPosPanel;      // панель расстановки кораблей
     public GameObject BattleSceneCanvas;    // ui боевой сцены
     public GameObject EnemyField;           // Поле врага
+
+    public Image StepArrow;                 // стрелка показывающая чей сейчас ход
 
     public GameObject Gun                   // Прицел выбранного орудия
     {
