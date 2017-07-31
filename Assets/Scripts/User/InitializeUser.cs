@@ -1,32 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class InitializeUser : Photon.MonoBehaviour
 {
     private PhotonView PhotonView;
     
-    public static int[,] ships;             // позиции кораблей
-    ShipSortingScene ShipController;        // необходим для извлечения инфо о списке кораблей
+    public static int[,] ships;                 // позиции кораблей
+    
 
-    public static bool isReady;             // нажата ли кнопка далее
-    private bool gameStart;                 // старт игры когда все будут готовы
+    public static bool isReady;                 // нажата ли кнопка далее
+    protected bool gameStart;                   // старт игры когда все будут готовы
+    protected ShipSortingScene ShipController;  // необходим для извлечения инфо о списке кораблей
+    private float timer = 2f;                   // таймер для задержки на проверку готовы ли все игроки
 
-    private float timer = 2f;               // таймер для задержки на проверку готовы ли все игроки
-
-    private Battleground enemyBg;           // поле отображающее попадания/промахи по врагу
+    protected Battleground enemyBg;             // поле отображающее попадания/промахи по врагу
 
     public static ShootingArea ShootingArea;
 
-    public static bool allowFire;           // доступность стрельбы в очереди
+    public static bool allowFire;               // доступность стрельбы в очереди
 
-    private void Awake()
+    protected virtual void Awake()
     {
         PhotonView = GetComponent<PhotonView>();
         ShipController = FindObjectOfType<ShipSortingScene>();        
     }
 
-    private void Start()
+    protected virtual void Start()
     {
         isReady = false;
         gameStart = false;
@@ -61,61 +60,70 @@ public class InitializeUser : Photon.MonoBehaviour
             /* ---- ПОСЛЕ УДАЛИТЬ!! ---- */
         }       
 
-        if (gameStart && allowFire)
+        if (gameStart && allowFire && PhotonView.isMine)
             ShootsFire();
     }
     
     private void ShootsFire()
     {        
-        if (PhotonView.isMine && Input.GetMouseButtonUp(0))
+        if (Input.GetMouseButtonUp(0))
         {
-            Vector2 v2 = Input.mousePosition;
-            v2 = Camera.main.ScreenToWorldPoint(v2);
+            int packed_data = InputData();
 
-            // если курсор находится за пределами поля стрельбы - ничего не произойдет
-            if (v2.x < ShipController.EnemyField.transform.position.x || v2.x > (ShipController.EnemyField.transform.position.x + enemyBg.size_X) || 
-                v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
+            if (packed_data == -1)
                 return;
-            
-            float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
-            float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
 
-            // костыль для орудий с параметрами 2 по широте/высоте
-            if (PlayerNetwork.Instance.shootingArea.sizeX == 1) kx = 0.5f;
-            if (PlayerNetwork.Instance.shootingArea.sizeY == 1) ky = 0.5f;
-
-            // устанавливаем координаты левого нижнего и правого верхнего угла
-            int xL = (int)(v2.x - ShipController.EnemyField.transform.position.x - kx);
-            int yL = (int)(v2.y - ky);
-            int xR = (int)(v2.x - ShipController.EnemyField.transform.position.x + kx);
-            int yR = (int)(v2.y + ky);
-
-            // страхуемся, при выходе за пределы избегаем обработки несуществующих координат
-            xL = xL < 0 ? 0 : xL > (enemyBg.size_X - 1) ? (enemyBg.size_X - 1) : xL;
-            yL = yL < 0 ? 0 : yL > (enemyBg.size_Y - 1) ? (enemyBg.size_Y - 1) : yL;
-            xR = xR < 0 ? 0 : xR > (enemyBg.size_X - 1) ? (enemyBg.size_X - 1) : xR;
-            yR = yR < 0 ? 0 : yR > (enemyBg.size_Y - 1) ? (enemyBg.size_Y - 1) : yR;
-
-            // проверка и запрет на стрельбу в уже обстрелянные координаты
-            int counter = 0;
-            for (int j = yL; j <= yR; j++)
-                for (int i = xL; i <= xR; i++)
-                {
-                    if (enemyBg.BattleFieldArray[i, j] == 1 || enemyBg.BattleFieldArray[i, j] == 0)
-                        counter++; 
-                }
-            if (((yR - yL) + 1) * ((xR - xL) + 1) == counter)
-                return;
-            
-            allowFire = false;
-            ShipController.StepArrow.color = new Color(255f, 0f, 0f);
-
-            // записываем в порядке от левого нижнего угла к правому верхнему
-            int packed_data = (xL << 12) | (yL << 8) | (xR << 4) | yR;
-            print("data size: " + BitConverter.GetBytes(packed_data).Length);
             photonView.RPC("ModifiedFire", PhotonTargets.Others, packed_data);
         }
     }
+
+    protected virtual int InputData()
+    {
+        Vector2 v2 = Input.mousePosition;
+        v2 = Camera.main.ScreenToWorldPoint(v2);
+
+        // если курсор находится за пределами поля стрельбы - ничего не произойдет
+        if (v2.x < ShipController.EnemyField.transform.position.x || v2.x > (ShipController.EnemyField.transform.position.x + enemyBg.size_X) ||
+            v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
+            return -1;
+
+        float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
+        float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
+
+        // костыль для орудий с параметрами 2 по широте/высоте
+        if (PlayerNetwork.Instance.shootingArea.sizeX == 1) kx = 0.5f;
+        if (PlayerNetwork.Instance.shootingArea.sizeY == 1) ky = 0.5f;
+
+        // устанавливаем координаты левого нижнего и правого верхнего угла
+        int xL = (int)(v2.x - ShipController.EnemyField.transform.position.x - kx);
+        int yL = (int)(v2.y - ky);
+        int xR = (int)(v2.x - ShipController.EnemyField.transform.position.x + kx);
+        int yR = (int)(v2.y + ky);
+
+        // страхуемся, при выходе за пределы избегаем обработки несуществующих координат
+        xL = xL < 0 ? 0 : xL > (enemyBg.size_X - 1) ? (enemyBg.size_X - 1) : xL;
+        yL = yL < 0 ? 0 : yL > (enemyBg.size_Y - 1) ? (enemyBg.size_Y - 1) : yL;
+        xR = xR < 0 ? 0 : xR > (enemyBg.size_X - 1) ? (enemyBg.size_X - 1) : xR;
+        yR = yR < 0 ? 0 : yR > (enemyBg.size_Y - 1) ? (enemyBg.size_Y - 1) : yR;
+
+        // проверка и запрет на стрельбу в уже обстрелянные координаты
+        int counter = 0;
+        for (int j = yL; j <= yR; j++)
+            for (int i = xL; i <= xR; i++)
+            {
+                if (enemyBg.BattleFieldArray[i, j] == 1 || enemyBg.BattleFieldArray[i, j] == 0)
+                    counter++;
+            }
+        if (((yR - yL) + 1) * ((xR - xL) + 1) == counter)
+            return -1;
+
+        allowFire = false;
+        ShipController.StepArrow.color = new Color(255f, 0f, 0f);
+
+        // записываем в порядке от левого нижнего угла к правому верхнему
+         return ( (xL << 12) | (yL << 8) | (xR << 4) | yR );
+    }
+
     //
     // старт игры когда все игроки нажмут кнопку "готовы"
     //
@@ -126,7 +134,7 @@ public class InitializeUser : Photon.MonoBehaviour
             photonView.RPC("StartPlay", PhotonTargets.All);
     }
     [PunRPC]
-    private void StartPlay()
+    protected virtual void StartPlay()
     {
         ShipController.SetShipPosPanel.SetActive(false);
         ShipController.BattleSceneCanvas.SetActive(true);
@@ -154,8 +162,7 @@ public class InitializeUser : Photon.MonoBehaviour
         int yR = packed_data & mask;
 
         Battleground myBg = GameObject.Find("Battle_field").GetComponent<Battleground>();
-
-
+        
         allowFire = true;
         ShipController.StepArrow.color = new Color(0f, 255f, 0f);
 
