@@ -515,7 +515,9 @@ public class ShipSortingScene : MonoBehaviour
 
         // Создаём объекты прицелов
         for (int i = 1; i < 7; i++)
-            PoolManager.Instance.CreateWeapons(Resources.Load("Weapon/gun" + i) as GameObject, i);        
+            PoolManager.Instance.CreateWeapons(Resources.Load("Weapon/gun" + i) as GameObject, i);
+
+        //Instantiate(Resources.Load("singleUser"));
     }
     //
     // Кнопка смены оружия

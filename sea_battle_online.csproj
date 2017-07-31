@@ -158,7 +158,6 @@
     <Compile Include="Assets\Scripts\CurrentRoom\CurrentRoomCanvas.cs" />
     <Compile Include="Assets\Scripts\CurrentRoom\PlayerLayoutGroup.cs" />
     <Compile Include="Assets\Scripts\CurrentRoom\PlayerListing.cs" />
-    <Compile Include="Assets\Scripts\InitializeUser.cs" />
     <Compile Include="Assets\Scripts\Lobby\LobbyCanvas.cs" />
     <Compile Include="Assets\Scripts\Lobby\RoomLayoutGroup.cs" />
     <Compile Include="Assets\Scripts\Lobby\RoomListing.cs" />
@@ -171,6 +170,8 @@
     <Compile Include="Assets\Scripts\Ships\PoolManager.cs" />
     <Compile Include="Assets\Scripts\Ships\ShipCollision.cs" />
     <Compile Include="Assets\Scripts\Ships\ShipSortingScene.cs" />
+    <Compile Include="Assets\Scripts\User\InitializeUser.cs" />
+    <Compile Include="Assets\Scripts\User\SingleUser.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Photon Unity Networking\changelog.txt" />
