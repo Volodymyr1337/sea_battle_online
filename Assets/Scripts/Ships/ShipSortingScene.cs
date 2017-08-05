@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -517,7 +518,9 @@ public class ShipSortingScene : MonoBehaviour
         for (int i = 1; i < 7; i++)
             PoolManager.Instance.CreateWeapons(Resources.Load("Weapon/gun" + i) as GameObject, i);
 
-        //Instantiate(Resources.Load("singleUser"));
+        if (!PlayerNetwork.Instance.isMultiplayerGame)
+            SinglePlayer.OnClickNext();
+        //Instantiate(Resources.Load("SinglePlayer"));
     }
     //
     // Кнопка смены оружия
@@ -526,7 +529,7 @@ public class ShipSortingScene : MonoBehaviour
     {
         PlayerNetwork.Instance.RapidFire(area);
     }
-    public void OnChangeWeaponBtnId(int id)
+    public void OnChangeWeaponBtnId(int id)         // под курсор мыши подставляется спрайт прицела выбранного орудия
     {
         if (Gun != null)
             PoolManager.Instance.ReturnGun((int)Char.GetNumericValue(Gun.name.ToCharArray(3, 1)[0]), Gun);
@@ -535,13 +538,17 @@ public class ShipSortingScene : MonoBehaviour
         Gun.SetActive(true);
     }
     //
-    // кнопка покинуть лобби
+    // кнопка ВЫХОДА в меню
     //
     public void OnClickLeaveGame()
     {
-        PhotonNetwork.LeaveRoom();
-               
-        PhotonNetwork.LoadLevel(1);
+        if (PlayerNetwork.Instance.isMultiplayerGame)
+        {
+            PhotonNetwork.LeaveRoom();
+            PhotonNetwork.LoadLevel("MainMenu");
+        }
+        else
+            SceneManager.LoadScene("MainMenu");
     }
 
 }

@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 
-public class SingleUser : InitializeUser
+public class SinglePlayer : InitializeUser
 {
     private int[,] enemyShips;          // корабли компьютера
 
     private Battleground myBg;
+
+    public delegate void StartSinglePlay();
+    public static StartSinglePlay OnClickNext;          // Если стартует в одиночной игре
+
     protected override void Awake()
     {
         base.Awake();
@@ -19,10 +24,10 @@ public class SingleUser : InitializeUser
         allowFire = true;
         myBg = GameObject.Find("Battle_field").GetComponent<Battleground>();
 
-        StartPlay();
+        OnClickNext = new StartSinglePlay(StartPlay);
     }
 
-    private void Update()
+    protected override void Update()
     {
         if (gameStart && allowFire)
             ShootsFire();
@@ -32,7 +37,22 @@ public class SingleUser : InitializeUser
     {
         if (Input.GetMouseButtonUp(0))
         {
-            int packed_data = InputData();
+            Vector2 v2 = Input.mousePosition;
+            v2 = Camera.main.ScreenToWorldPoint(v2);
+
+            // если курсор находится за пределами поля стрельбы - ничего не произойдет
+            if (v2.x < ShipController.EnemyField.transform.position.x || v2.x > (ShipController.EnemyField.transform.position.x + enemyBg.size_X) ||
+                v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
+                return;
+
+            float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
+            float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
+
+            // костыль для орудий с параметрами 2 по широте/высоте
+            if (PlayerNetwork.Instance.shootingArea.sizeX == 1) kx = 0.5f;
+            if (PlayerNetwork.Instance.shootingArea.sizeY == 1) ky = 0.5f;
+
+            int packed_data = base.InputData(v2, kx, ky);
 
             if (packed_data == -1)
                 return;
@@ -41,7 +61,7 @@ public class SingleUser : InitializeUser
         }
     }
 
-    private void ModifiedFire(int packed_data, bool human)
+    private void ModifiedFire(int packed_data, bool human = false)
     {
         byte mask = 15;         // маска 0000 1111
 
@@ -94,13 +114,13 @@ public class SingleUser : InitializeUser
             }
     }
 
-    protected override int InputData()
-    {
-        return base.InputData();
-    }
-
     protected override void StartPlay()
     {
+        StartCoroutine(Cooldown());
+    }
+    IEnumerator Cooldown()
+    {
+        yield return new WaitForSeconds(.1f);
         base.StartPlay();
     }
 }

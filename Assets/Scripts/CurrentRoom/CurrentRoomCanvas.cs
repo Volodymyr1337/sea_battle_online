@@ -12,6 +12,6 @@ public class CurrentRoomCanvas : MonoBehaviour
 
         PhotonNetwork.room.IsOpen = false;
         PhotonNetwork.room.IsVisible = false;
-        PhotonNetwork.LoadLevel(2);
+        PhotonNetwork.LoadLevel("Play");
     }
 }

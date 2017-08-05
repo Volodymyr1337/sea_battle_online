@@ -21,7 +21,14 @@ public class InitializeUser : Photon.MonoBehaviour
 
     protected virtual void Awake()
     {
-        PhotonView = GetComponent<PhotonView>();
+        try
+        {
+            PhotonView = GetComponent<PhotonView>();
+        }
+        catch(Exception ex)
+        {
+            Debug.LogError(ex.Message);
+        }
         ShipController = FindObjectOfType<ShipSortingScene>();        
     }
 
@@ -42,7 +49,7 @@ public class InitializeUser : Photon.MonoBehaviour
             
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         timer -= Time.deltaTime;
         if (!gameStart && isReady && PhotonView.isMine && timer <= 0f)
@@ -68,7 +75,22 @@ public class InitializeUser : Photon.MonoBehaviour
     {        
         if (Input.GetMouseButtonUp(0))
         {
-            int packed_data = InputData();
+            Vector2 v2 = Input.mousePosition;
+            v2 = Camera.main.ScreenToWorldPoint(v2);
+
+            // если курсор находится за пределами поля стрельбы - ничего не произойдет
+            if (v2.x < ShipController.EnemyField.transform.position.x || v2.x > (ShipController.EnemyField.transform.position.x + enemyBg.size_X) ||
+                v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
+                return;
+
+            float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
+            float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
+
+            // костыль для орудий с параметрами 2 по широте/высоте
+            if (PlayerNetwork.Instance.shootingArea.sizeX == 1) kx = 0.5f;
+            if (PlayerNetwork.Instance.shootingArea.sizeY == 1) ky = 0.5f;
+
+            int packed_data = InputData(v2, kx, ky);
 
             if (packed_data == -1)
                 return;
@@ -76,24 +98,15 @@ public class InitializeUser : Photon.MonoBehaviour
             photonView.RPC("ModifiedFire", PhotonTargets.Others, packed_data);
         }
     }
-
-    protected virtual int InputData()
+    /// <summary>
+    /// Входные параметры для стрельбы
+    /// </summary>
+    /// <param name="v2">Позиция мыши</param>
+    /// <param name="kx">поправочный коэфициент по оси Х</param>
+    /// <param name="ky">поправочный коэфициент по оси У</param>
+    /// <returns>возвращает 32битное целое, где первые 16 бит это параметры(по 4 бита каждый)</returns>
+    protected virtual int InputData(Vector2 v2, float kx, float ky)
     {
-        Vector2 v2 = Input.mousePosition;
-        v2 = Camera.main.ScreenToWorldPoint(v2);
-
-        // если курсор находится за пределами поля стрельбы - ничего не произойдет
-        if (v2.x < ShipController.EnemyField.transform.position.x || v2.x > (ShipController.EnemyField.transform.position.x + enemyBg.size_X) ||
-            v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
-            return -1;
-
-        float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
-        float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
-
-        // костыль для орудий с параметрами 2 по широте/высоте
-        if (PlayerNetwork.Instance.shootingArea.sizeX == 1) kx = 0.5f;
-        if (PlayerNetwork.Instance.shootingArea.sizeY == 1) ky = 0.5f;
-
         // устанавливаем координаты левого нижнего и правого верхнего угла
         int xL = (int)(v2.x - ShipController.EnemyField.transform.position.x - kx);
         int yL = (int)(v2.y - ky);

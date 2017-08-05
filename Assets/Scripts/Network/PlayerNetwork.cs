@@ -9,14 +9,22 @@ public class PlayerNetwork : MonoBehaviour
     private PhotonView PhotonView;
     private int PlayersInGame = 0;
 
+    public bool isMultiplayerGame;      // флаг для проверки многопользовательская игра или нет
+
     public ShootingArea shootingArea;
 
     private void Awake()
     {
         Instance = this;
 
+        isMultiplayerGame = false;
+
         shootingArea = new ShootingArea();
         PhotonView = GetComponent<PhotonView>();
+
+        /* 
+         * !!! USERNAME не забыть настроить !!!
+         */
         PlayerName = "android#" + Random.Range(100, 999);
 
         SceneManager.sceneLoaded += OnSceneFinishedLoading;
@@ -24,7 +32,7 @@ public class PlayerNetwork : MonoBehaviour
 
     private void OnSceneFinishedLoading(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "Play")
+        if (isMultiplayerGame && scene.name == "Play")
         {
             if (PhotonNetwork.isMasterClient)
                 MasterLoadedGame();
@@ -48,7 +56,7 @@ public class PlayerNetwork : MonoBehaviour
     [PunRPC]
     private void RPC_LoadGameOthers()
     {
-        PhotonNetwork.LoadLevel(2);
+        PhotonNetwork.LoadLevel("Play");
     }
 
     [PunRPC]

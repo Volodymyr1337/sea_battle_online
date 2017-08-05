@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MainCanvas : MonoBehaviour
 {
@@ -21,5 +22,10 @@ public class MainCanvas : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+    }
+
+    public void LeaveToMenu()            // выход в меню
+    {
+        SceneManager.LoadScene("MainMenu");
     }
 }
