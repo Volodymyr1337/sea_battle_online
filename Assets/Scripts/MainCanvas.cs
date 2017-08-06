@@ -26,6 +26,7 @@ public class MainCanvas : MonoBehaviour
 
     public void LeaveToMenu()            // выход в меню
     {
+        PhotonNetwork.Disconnect();
         SceneManager.LoadScene("MainMenu");
     }
 }

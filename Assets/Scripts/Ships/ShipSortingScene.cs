@@ -629,3 +629,35 @@ public struct ShootingArea      // описывает квадрат пораж�
         return ("Shooting area size (" + sizeX + ", " + sizeY + ")");
     }
 }
+
+public class AiGun
+{
+    public int Count
+    {
+        get; set;
+    }
+    public GunName Name
+    {
+        get; private set;
+    }
+    public ShootingArea ShootArea
+    {
+        get; private set;
+    }
+    public AiGun(ShootingArea area, int count, GunName name)
+    {
+        ShootArea = area;
+        Count = count;
+        Name = name;
+    }
+}
+
+public enum GunName
+{
+    Default,
+    Airstrike,
+    RocketLaunch,
+    Bombs,
+    Scan,
+    Nuclear
+}

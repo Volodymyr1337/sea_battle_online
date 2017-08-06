@@ -1,7 +1,14 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
+
+/*
+ * - Работает через пень-колоду
+ * - зарефакторить
+ * - ещё раз проверить ходы АИ, подкрутить соображалку
+ */
 public class SinglePlayer : InitializeUser
 {
     private int[,] enemyShips;          // корабли компьютера
@@ -13,10 +20,17 @@ public class SinglePlayer : InitializeUser
 
     private int AiShipsLeft = 10;
     private int UsrShipsLeft = 10;
+    private List<AiGun> AiGuns = new List<AiGun>();
 
     protected override void Awake()
     {
         base.Awake();
+        AiGuns.Add(new AiGun(new ShootingArea(0, 0), 99, GunName.Default));
+        AiGuns.Add(new AiGun(new ShootingArea(2, 0), 1, GunName.Airstrike));
+        AiGuns.Add(new AiGun(new ShootingArea(1, 1), 1, GunName.RocketLaunch));
+        AiGuns.Add(new AiGun(new ShootingArea(2, 1), 1, GunName.Bombs));
+        AiGuns.Add(new AiGun(new ShootingArea(3, 3), 1, GunName.Nuclear));
+        AiGuns.Add(new AiGun(new ShootingArea(0, 0), 1, GunName.Scan));
     }
 
     protected override void Start()
@@ -66,54 +80,59 @@ public class SinglePlayer : InitializeUser
         int yL = (packed_data >> 8) & mask;
         int xR = (packed_data >> 4) & mask;
         int yR = packed_data & mask;
-        
-        // отмечаем попаданиях/промахах
-        for (int j = yL; j <= yR; j++)
+
+
+        int usrHits = 0;        // если кол-во попаданий юзера больше 0, то юзер стреляет еще раз
+       
+        for (int j = yL; j <= yR; j++)       // отмечаем попаданиях/промахах
             for (int i = xL; i <= xR; i++)
             {
-                try
+                if (enemyShips[i, j] == 1)
                 {
-                    if (enemyShips[i, j] == 1)
+                    for (int index = 0; index < ShipController.AIShipListing.Count; index++)
                     {
-                        for (int index = 0; index < ShipController.AIShipListing.Count; index++)
+                        if (ShipController.AIShipListing[index].IsAlive)
                         {
-                            if (ShipController.AIShipListing[index].IsAlive)
+                            foreach (ShipCoords shCoord in ShipController.AIShipListing[index].Coords)
                             {
-                                foreach (ShipCoords shCoord in ShipController.AIShipListing[index].Coords)
+                                if (shCoord.x == i && shCoord.y == j)
                                 {
-                                    if (shCoord.x == i && shCoord.y == j)
+                                    ShipController.AIShipListing[index].ShootsRemaining--;
+                                    if (ShipController.AIShipListing[index].ShootsRemaining == 0)
                                     {
-                                        ShipController.AIShipListing[index].ShootsRemaining--;
-                                        if (ShipController.AIShipListing[index].ShootsRemaining == 0)
-                                        {
-                                            ShipController.AIShipListing[index].IsAlive = false;
-                                            AiShipsLeft--;
-                                            Debug.LogError("Ai Ship: " + ShipController.AIShipListing[index].Size + " died!");
-                                        }
-
+                                        ShipController.AIShipListing[index].IsAlive = false;
+                                        AiShipsLeft--;
+                                        Debug.LogError("Ai Ship: " + ShipController.AIShipListing[index].Size + " died!");
                                     }
+
                                 }
                             }
                         }
-                        enemyBg.BattleFieldUpdater(i, j, true);
-                        allowFire = true;
-                        ShipController.StepArrow.color = new Color(0f, 255f, 0f);
-                        if (AiShipsLeft == 0)
-                        {
-                            Debug.LogError("!!!YOU WON!!");
-                        }
                     }
-                    else
+                    enemyBg.BattleFieldUpdater(i, j, true);
+                    usrHits++;
+                        
+                   
+                    if (AiShipsLeft == 0)
                     {
-                        enemyBg.BattleFieldUpdater(i, j, false);
-                        StartCoroutine(AiShootingCooldown());
+                        Debug.LogError("!!!YOU WON!!");
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    print(ex.Message);
+                    enemyBg.BattleFieldUpdater(i, j, false);
                 }
             }
+
+        if (usrHits > 0)
+        {
+            allowFire = true;
+            ShipController.StepArrow.color = new Color(0f, 255f, 0f);
+        }
+        else
+        {
+            StartCoroutine(AiShootingCooldown());
+        }
     }
 
     #region Start single Play and AI ships spawning
@@ -223,47 +242,78 @@ public class SinglePlayer : InitializeUser
 
     private void AIshooting()
     {
+        int randWeapon = UnityEngine.Random.Range(0, AiGuns.Count);
+
+        Debug.Log("wpn index " + randWeapon);
         int shootX, shootY;
-        shootX = UnityEngine.Random.Range(0, 10);
-        shootY = UnityEngine.Random.Range(0, 10);
+        shootX = UnityEngine.Random.Range(0, (10 - (int)AiGuns[randWeapon].ShootArea.sizeX));
+        shootY = UnityEngine.Random.Range(0, (10 - (int)AiGuns[randWeapon].ShootArea.sizeY));
 
         // если по указанным координатам комп уже стрелял - повторить попытку
-        if (myBg.BattleFieldArray[shootX, shootY] == 0 || myBg.BattleFieldArray[shootX, shootY] == 1)
-            AIshooting();
-
-        if (ships[shootX, shootY] == 1)             // при попадании - АИ стреляет ещё разок
-        {
-            for (int index = 0; index < ShipController.ShipListing.Count; index++)
+        int hitCount = 0;
+        for (int i = shootX; i <= AiGuns[randWeapon].ShootArea.sizeX; i++)
+            for (int j = shootY; j <= AiGuns[randWeapon].ShootArea.sizeY; j++)
             {
-                if (ShipController.ShipListing[index].IsAlive)
+                if (myBg.BattleFieldArray[i, j] == 0 || myBg.BattleFieldArray[i, j] == 1)
+                    hitCount++;
+            }
+        if (hitCount == (AiGuns[randWeapon].ShootArea.sizeX + 1) * (AiGuns[randWeapon].ShootArea.sizeY + 1))
+        {
+            AIshooting();
+            return;
+        }
+
+        int AiHits = 0;     // если кол-во попаданий больше 0 то АИ будет стрелять повторно
+        for (int i = shootX; i <= (shootX + AiGuns[randWeapon].ShootArea.sizeX); i++)
+            for (int j = shootY; j <= (shootY + AiGuns[randWeapon].ShootArea.sizeY); j++)
+            {
+                if (ships[i, j] == 1)             // при попадании - АИ стреляет ещё разок
                 {
-                    foreach (ShipCoords shCoord in ShipController.ShipListing[index].Coords)
+                    for (int index = 0; index < ShipController.ShipListing.Count; index++)
                     {
-                        if (shCoord.x == shootX && shCoord.y == shootY)
+                        if (ShipController.ShipListing[index].IsAlive)
                         {
-                            ShipController.ShipListing[index].ShootsRemaining--;
-                            if (ShipController.ShipListing[index].ShootsRemaining == 0)
+                            foreach (ShipCoords shCoord in ShipController.ShipListing[index].Coords)
                             {
-                                ShipController.ShipListing[index].IsAlive = false;
-                                UsrShipsLeft--;
-                                Debug.LogError("user Ship: " + ShipController.ShipListing[index].Size + " died!");
+                                if (shCoord.x == i && shCoord.y == j)
+                                {
+                                    ShipController.ShipListing[index].ShootsRemaining--;
+                                    if (ShipController.ShipListing[index].ShootsRemaining == 0)
+                                    {
+                                        ShipController.ShipListing[index].IsAlive = false;
+                                        UsrShipsLeft--;
+                                        Debug.LogError("user Ship: " + ShipController.ShipListing[index].Size + " died!");
+                                    }
+                                }
                             }
                         }
                     }
+                    AiHits++;
+                    
+                    myBg.BattleFieldUpdater(i, j, true);
+                    if (UsrShipsLeft == 0)
+                    {
+                        Debug.LogError("!!!AI WON!!");
+                    }                    
+                }
+                else
+                {
+                    myBg.BattleFieldUpdater(i, j, false);                   
                 }
             }
+        // Удаляем валыну если её кол-во = 0
+        AiGuns[randWeapon].Count--;
+        if (AiGuns[randWeapon].Count == 0)
+            AiGuns.RemoveAt(randWeapon);
+
+        if (AiHits > 0)
+        {
             allowFire = false;
-            myBg.BattleFieldUpdater(shootX, shootY, true);
-            if (UsrShipsLeft == 0)
-            {
-                Debug.LogError("!!!AI WON!!");
-            }
             AIshooting();
         }
         else
         {
             allowFire = true;
-            myBg.BattleFieldUpdater(shootX, shootY, false);
             ShipController.StepArrow.color = new Color(0f, 255f, 0f);
         }
     }
