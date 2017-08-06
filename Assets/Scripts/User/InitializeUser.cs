@@ -10,10 +10,13 @@ public class InitializeUser : Photon.MonoBehaviour
 
     public static bool isReady;                 // нажата ли кнопка далее
     protected bool gameStart;                   // старт игры когда все будут готовы
-    protected ShipSortingScene ShipController;  // необходим для извлечения инфо о списке кораблей
+    public ShipSortingScene ShipController      // необходим для извлечения инфо о списке кораблей
+    {
+        get; set;
+    }  
     private float timer = 2f;                   // таймер для задержки на проверку готовы ли все игроки
 
-    protected Battleground enemyBg;             // поле отображающее попадания/промахи по врагу
+    protected Battleground enemyBg;             // поле отображающее попадания/промахи по врагу (присваивается в StartPlay)
 
     public static ShootingArea ShootingArea;
 
@@ -21,7 +24,14 @@ public class InitializeUser : Photon.MonoBehaviour
 
     protected virtual void Awake()
     {
-        PhotonView = GetComponent<PhotonView>();
+        try
+        {
+            PhotonView = GetComponent<PhotonView>();
+        }
+        catch(Exception ex)
+        {
+            Debug.LogError(ex.Message);
+        }
         ShipController = FindObjectOfType<ShipSortingScene>();        
     }
 
@@ -42,7 +52,7 @@ public class InitializeUser : Photon.MonoBehaviour
             
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         timer -= Time.deltaTime;
         if (!gameStart && isReady && PhotonView.isMine && timer <= 0f)
@@ -76,7 +86,9 @@ public class InitializeUser : Photon.MonoBehaviour
             photonView.RPC("ModifiedFire", PhotonTargets.Others, packed_data);
         }
     }
-
+    /// <summary>
+    /// Корректировка стрельбы по вражине, возвращает -1 если в указанные координаты уже стрелял
+    /// </summary>
     protected virtual int InputData()
     {
         Vector2 v2 = Input.mousePosition;
@@ -123,7 +135,6 @@ public class InitializeUser : Photon.MonoBehaviour
         // записываем в порядке от левого нижнего угла к правому верхнему
          return ( (xL << 12) | (yL << 8) | (xR << 4) | yR );
     }
-
     //
     // старт игры когда все игроки нажмут кнопку "готовы"
     //
@@ -153,8 +164,6 @@ public class InitializeUser : Photon.MonoBehaviour
     private void ModifiedFire(int packed_data)
     {
         byte mask = 15;         // маска 0000 1111
-        
-        print("Hit area: " + ((packed_data >> 12) & mask) + ", " + ((packed_data >> 8) & mask) + " | " + ((packed_data >> 4) & mask) + ", " + (packed_data & mask));
 
         int xL = (packed_data >> 12) & mask;
         int yL = (packed_data >> 8) & mask;

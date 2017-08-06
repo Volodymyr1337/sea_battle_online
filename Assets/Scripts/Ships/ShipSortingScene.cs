@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,7 +31,8 @@ public class ShipSortingScene : MonoBehaviour
     {
         get; private set;
     }
-    public List<Ship> ShipListing = new List<Ship>();
+    public List<Ship> ShipListing = new List<Ship>();       // список моих кораблей
+    public List<Ship> AIShipListing = new List<Ship>();     // список кораблей компьютера в одиночной игре
 
     public Text[] shipCount;                // нумерация оставшегося кол-ва доступных кораблей
 
@@ -171,21 +173,18 @@ public class ShipSortingScene : MonoBehaviour
                 switch (key)
                 {
                     case 2:
-                        ShipListing.Add(new Ship(new ShipCoords[2] {
-                                                                            new ShipCoords(xPos - 1, yPos),
+                        ShipListing.Add(new Ship(new ShipCoords[2] {        new ShipCoords(xPos - 1, yPos),
                                                                             new ShipCoords(xPos, yPos)
                                                                             }, true, key));
                         break;
                     case 3:
-                        ShipListing.Add(new Ship(new ShipCoords[3] {
-                                                                            new ShipCoords(Mathf.RoundToInt(xPos - shipCol.size.x / 2), yPos),
+                        ShipListing.Add(new Ship(new ShipCoords[3] {        new ShipCoords(Mathf.RoundToInt(xPos - shipCol.size.x / 2), yPos),
                                                                             new ShipCoords(xPos + 1, yPos),
                                                                             new ShipCoords(xPos, yPos)
                                                                             }, true, key));
                         break;
                     case 4:
-                        ShipListing.Add(new Ship(new ShipCoords[4] {
-                                                                            new ShipCoords(Mathf.RoundToInt(xPos - shipCol.size.x / 2), yPos),
+                        ShipListing.Add(new Ship(new ShipCoords[4] {        new ShipCoords(Mathf.RoundToInt(xPos - shipCol.size.x / 2), yPos),
                                                                             new ShipCoords(xPos + 1, yPos),
                                                                             new ShipCoords(xPos - 1, yPos),
                                                                             new ShipCoords(xPos, yPos)
@@ -464,7 +463,7 @@ public class ShipSortingScene : MonoBehaviour
         {
             Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             
-            // Если курсор не находится над полем врага ничего не произойдет
+            // Если курсор не находится над полем врага, то ничего не произойдет
             if (pos.x < EnemyField.transform.position.x || pos.x > (EnemyField.transform.position.x + bg.size_X) ||
                 pos.y < EnemyField.transform.position.y || pos.y > (EnemyField.transform.position.y + bg.size_Y))
             {
@@ -517,7 +516,12 @@ public class ShipSortingScene : MonoBehaviour
         for (int i = 1; i < 7; i++)
             PoolManager.Instance.CreateWeapons(Resources.Load("Weapon/gun" + i) as GameObject, i);
 
-        //Instantiate(Resources.Load("singleUser"));
+        if (!PlayerNetwork.Instance.isMultiplayerGame)
+        {
+            SinglePlayer.OnClickNext();            
+        }
+            
+        //Instantiate(Resources.Load("SinglePlayer"));
     }
     //
     // Кнопка смены оружия
@@ -526,7 +530,7 @@ public class ShipSortingScene : MonoBehaviour
     {
         PlayerNetwork.Instance.RapidFire(area);
     }
-    public void OnChangeWeaponBtnId(int id)
+    public void OnChangeWeaponBtnId(int id)         // под курсор мыши подставляется спрайт прицела выбранного орудия
     {
         if (Gun != null)
             PoolManager.Instance.ReturnGun((int)Char.GetNumericValue(Gun.name.ToCharArray(3, 1)[0]), Gun);
@@ -535,13 +539,17 @@ public class ShipSortingScene : MonoBehaviour
         Gun.SetActive(true);
     }
     //
-    // кнопка покинуть лобби
+    // кнопка ВЫХОДА в меню
     //
     public void OnClickLeaveGame()
     {
-        PhotonNetwork.LeaveRoom();
-               
-        PhotonNetwork.LoadLevel(1);
+        if (PlayerNetwork.Instance.isMultiplayerGame)
+        {
+            PhotonNetwork.LeaveRoom();
+            PhotonNetwork.LoadLevel("MainMenu");
+        }
+        else
+            SceneManager.LoadScene("MainMenu");
     }
 
 }
@@ -566,11 +574,27 @@ public class Ship       // клас содержащий информацию о
         get; private set;
     }
 
+    public int Size
+    {
+        get; private set;
+    }
+
     public Ship(ShipCoords[] coords, bool isAlive, int shootsRemaining)
     {
+        Size = coords.Length;
         Coords = coords;
         IsAlive = isAlive;
         ShootsRemaining = shootsRemaining;
+    }
+
+    public override string ToString()
+    {
+        string s = "";
+        foreach (ShipCoords sc in Coords)
+        {
+            s += sc.ToString();
+        }
+        return (s + ", isAlive " + IsAlive + ", shootsToDie: " + ShootsRemaining);
     }
 }
 
@@ -599,9 +623,41 @@ public struct ShootingArea      // описывает квадрат пораж�
         sizeX = xs;
         sizeY = ys;
     }
-
+    
     public override string ToString()
     {
         return ("Shooting area size (" + sizeX + ", " + sizeY + ")");
     }
+}
+
+public class AiGun
+{
+    public int Count
+    {
+        get; set;
+    }
+    public GunName Name
+    {
+        get; private set;
+    }
+    public ShootingArea ShootArea
+    {
+        get; private set;
+    }
+    public AiGun(ShootingArea area, int count, GunName name)
+    {
+        ShootArea = area;
+        Count = count;
+        Name = name;
+    }
+}
+
+public enum GunName
+{
+    Default,
+    Airstrike,
+    RocketLaunch,
+    Bombs,
+    Scan,
+    Nuclear
 }
