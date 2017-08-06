@@ -13,7 +13,7 @@ public class InitializeUser : Photon.MonoBehaviour
     protected ShipSortingScene ShipController;  // необходим для извлечения инфо о списке кораблей
     private float timer = 2f;                   // таймер для задержки на проверку готовы ли все игроки
 
-    protected Battleground enemyBg;             // поле отображающее попадания/промахи по врагу
+    protected Battleground enemyBg;             // поле отображающее попадания/промахи по врагу (присваивается в StartPlay)
 
     public static ShootingArea ShootingArea;
 

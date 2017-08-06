@@ -172,21 +172,18 @@ public class ShipSortingScene : MonoBehaviour
                 switch (key)
                 {
                     case 2:
-                        ShipListing.Add(new Ship(new ShipCoords[2] {
-                                                                            new ShipCoords(xPos - 1, yPos),
+                        ShipListing.Add(new Ship(new ShipCoords[2] {        new ShipCoords(xPos - 1, yPos),
                                                                             new ShipCoords(xPos, yPos)
                                                                             }, true, key));
                         break;
                     case 3:
-                        ShipListing.Add(new Ship(new ShipCoords[3] {
-                                                                            new ShipCoords(Mathf.RoundToInt(xPos - shipCol.size.x / 2), yPos),
+                        ShipListing.Add(new Ship(new ShipCoords[3] {        new ShipCoords(Mathf.RoundToInt(xPos - shipCol.size.x / 2), yPos),
                                                                             new ShipCoords(xPos + 1, yPos),
                                                                             new ShipCoords(xPos, yPos)
                                                                             }, true, key));
                         break;
                     case 4:
-                        ShipListing.Add(new Ship(new ShipCoords[4] {
-                                                                            new ShipCoords(Mathf.RoundToInt(xPos - shipCol.size.x / 2), yPos),
+                        ShipListing.Add(new Ship(new ShipCoords[4] {        new ShipCoords(Mathf.RoundToInt(xPos - shipCol.size.x / 2), yPos),
                                                                             new ShipCoords(xPos + 1, yPos),
                                                                             new ShipCoords(xPos - 1, yPos),
                                                                             new ShipCoords(xPos, yPos)
@@ -465,7 +462,7 @@ public class ShipSortingScene : MonoBehaviour
         {
             Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             
-            // Если курсор не находится над полем врага ничего не произойдет
+            // Если курсор не находится над полем врага, то ничего не произойдет
             if (pos.x < EnemyField.transform.position.x || pos.x > (EnemyField.transform.position.x + bg.size_X) ||
                 pos.y < EnemyField.transform.position.y || pos.y > (EnemyField.transform.position.y + bg.size_Y))
             {
@@ -519,7 +516,10 @@ public class ShipSortingScene : MonoBehaviour
             PoolManager.Instance.CreateWeapons(Resources.Load("Weapon/gun" + i) as GameObject, i);
 
         if (!PlayerNetwork.Instance.isMultiplayerGame)
-            SinglePlayer.OnClickNext();
+        {
+            SinglePlayer.OnClickNext();            
+        }
+            
         //Instantiate(Resources.Load("SinglePlayer"));
     }
     //

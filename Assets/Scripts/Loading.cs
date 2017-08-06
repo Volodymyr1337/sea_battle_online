@@ -5,8 +5,7 @@ using UnityEngine.SceneManagement;
 public class Loading : MonoBehaviour
 {
     private AsyncOperation LoadAsync;
-    [SerializeField]
-    private Slider loadingBar;
+    [SerializeField] private Slider loadingBar;
 
 
 	void Start ()

@@ -82,7 +82,7 @@ public class PlayerNetwork : MonoBehaviour
     public void RapidFire(int area)
     {
         int mask = 15;
-
+        
         shootingArea.sizeX = (float)((area >> 4) & mask);
         shootingArea.sizeY = (float)(area & mask);
     }
