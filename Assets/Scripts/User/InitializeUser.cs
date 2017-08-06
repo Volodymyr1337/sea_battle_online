@@ -10,7 +10,10 @@ public class InitializeUser : Photon.MonoBehaviour
 
     public static bool isReady;                 // нажата ли кнопка далее
     protected bool gameStart;                   // старт игры когда все будут готовы
-    protected ShipSortingScene ShipController;  // необходим для извлечения инфо о списке кораблей
+    public ShipSortingScene ShipController      // необходим для извлечения инфо о списке кораблей
+    {
+        get; set;
+    }  
     private float timer = 2f;                   // таймер для задержки на проверку готовы ли все игроки
 
     protected Battleground enemyBg;             // поле отображающее попадания/промахи по врагу (присваивается в StartPlay)
@@ -75,22 +78,7 @@ public class InitializeUser : Photon.MonoBehaviour
     {        
         if (Input.GetMouseButtonUp(0))
         {
-            Vector2 v2 = Input.mousePosition;
-            v2 = Camera.main.ScreenToWorldPoint(v2);
-
-            // если курсор находится за пределами поля стрельбы - ничего не произойдет
-            if (v2.x < ShipController.EnemyField.transform.position.x || v2.x > (ShipController.EnemyField.transform.position.x + enemyBg.size_X) ||
-                v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
-                return;
-
-            float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
-            float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
-
-            // костыль для орудий с параметрами 2 по широте/высоте
-            if (PlayerNetwork.Instance.shootingArea.sizeX == 1) kx = 0.5f;
-            if (PlayerNetwork.Instance.shootingArea.sizeY == 1) ky = 0.5f;
-
-            int packed_data = InputData(v2, kx, ky);
+            int packed_data = InputData();
 
             if (packed_data == -1)
                 return;
@@ -99,14 +87,25 @@ public class InitializeUser : Photon.MonoBehaviour
         }
     }
     /// <summary>
-    /// Входные параметры для стрельбы
+    /// Корректировка стрельбы по вражине, возвращает -1 если в указанные координаты уже стрелял
     /// </summary>
-    /// <param name="v2">Позиция мыши</param>
-    /// <param name="kx">поправочный коэфициент по оси Х</param>
-    /// <param name="ky">поправочный коэфициент по оси У</param>
-    /// <returns>возвращает 32битное целое, где первые 16 бит это параметры(по 4 бита каждый)</returns>
-    protected virtual int InputData(Vector2 v2, float kx, float ky)
+    protected virtual int InputData()
     {
+        Vector2 v2 = Input.mousePosition;
+        v2 = Camera.main.ScreenToWorldPoint(v2);
+
+        // если курсор находится за пределами поля стрельбы - ничего не произойдет
+        if (v2.x < ShipController.EnemyField.transform.position.x || v2.x > (ShipController.EnemyField.transform.position.x + enemyBg.size_X) ||
+            v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
+            return -1;
+
+        float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
+        float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
+
+        // костыль для орудий с параметрами 2 по широте/высоте
+        if (PlayerNetwork.Instance.shootingArea.sizeX == 1) kx = 0.5f;
+        if (PlayerNetwork.Instance.shootingArea.sizeY == 1) ky = 0.5f;
+
         // устанавливаем координаты левого нижнего и правого верхнего угла
         int xL = (int)(v2.x - ShipController.EnemyField.transform.position.x - kx);
         int yL = (int)(v2.y - ky);
@@ -136,7 +135,6 @@ public class InitializeUser : Photon.MonoBehaviour
         // записываем в порядке от левого нижнего угла к правому верхнему
          return ( (xL << 12) | (yL << 8) | (xR << 4) | yR );
     }
-
     //
     // старт игры когда все игроки нажмут кнопку "готовы"
     //
@@ -166,8 +164,6 @@ public class InitializeUser : Photon.MonoBehaviour
     private void ModifiedFire(int packed_data)
     {
         byte mask = 15;         // маска 0000 1111
-        
-        print("Hit area: " + ((packed_data >> 12) & mask) + ", " + ((packed_data >> 8) & mask) + " | " + ((packed_data >> 4) & mask) + ", " + (packed_data & mask));
 
         int xL = (packed_data >> 12) & mask;
         int yL = (packed_data >> 8) & mask;

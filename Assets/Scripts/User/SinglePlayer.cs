@@ -11,6 +11,9 @@ public class SinglePlayer : InitializeUser
     public delegate void StartSinglePlay();
     public static StartSinglePlay OnClickNext;          // Если стартует в одиночной игре
 
+    private int AiShipsLeft = 10;
+    private int UsrShipsLeft = 10;
+
     protected override void Awake()
     {
         base.Awake();
@@ -46,73 +49,24 @@ public class SinglePlayer : InitializeUser
     {
         if (Input.GetMouseButtonUp(0))
         {
-            for (int i = 0; i < 10; i++)
-            {
-                for (int j = 0; j < 10; j++)
-                {
-                    if (enemyShips[i, j] == 1)
-                    {
-                        enemyBg.BattleFieldUpdater(i, j, true);
-                    }
-                    else
-                    {
-                        enemyBg.BattleFieldUpdater(i, j, false);
-                    }
-                }
-            }
-
-            /*
-            Vector2 v2 = Input.mousePosition;
-            v2 = Camera.main.ScreenToWorldPoint(v2);
-
-            // если курсор находится за пределами поля стрельбы - ничего не произойдет
-            if (v2.x < ShipController.EnemyField.transform.position.x || v2.x > (ShipController.EnemyField.transform.position.x + enemyBg.size_X) ||
-                v2.y < ShipController.EnemyField.transform.position.y || v2.y > (ShipController.EnemyField.transform.position.y + enemyBg.size_Y))
-                return;
-
-            float kx = PlayerNetwork.Instance.shootingArea.sizeX > 1 ? PlayerNetwork.Instance.shootingArea.sizeX / 2f : 0;
-            float ky = PlayerNetwork.Instance.shootingArea.sizeY > 1 ? PlayerNetwork.Instance.shootingArea.sizeY / 2f : 0;
-
-            // костыль для орудий с параметрами 2 по широте/высоте
-            if (PlayerNetwork.Instance.shootingArea.sizeX == 1) kx = 0.5f;
-            if (PlayerNetwork.Instance.shootingArea.sizeY == 1) ky = 0.5f;
-
-            int packed_data = base.InputData(v2, kx, ky);
+            int packed_data = base.InputData();
 
             if (packed_data == -1)
                 return;
 
-            ModifiedFire(packed_data, true);
-            */
+            ModifiedFire(packed_data);
         }
     }
 
-    private void ModifiedFire(int packed_data, bool human = false)
+    private void ModifiedFire(int packed_data)
     {
         byte mask = 15;         // маска 0000 1111
-
-        print("Hit area: " + ((packed_data >> 12) & mask) + ", " + ((packed_data >> 8) & mask) + " | " + ((packed_data >> 4) & mask) + ", " + (packed_data & mask));
 
         int xL = (packed_data >> 12) & mask;
         int yL = (packed_data >> 8) & mask;
         int xR = (packed_data >> 4) & mask;
         int yR = packed_data & mask;
         
-       
-        /*
-        // стрельба запрещена, если есть хоть одно попадание
-        for (int j = yL; j <= yR; j++)
-            for (int i = xL; i <= xR; i++)
-            {
-                if (ships[i, j] == 1 && human)
-                {
-                    allowFire = false;
-                    ShipController.StepArrow.color = new Color(255f, 0f, 0f);
-                    // комп стреляет ещё раз
-                    break;
-                }
-            }
-*/
         // отмечаем попаданиях/промахах
         for (int j = yL; j <= yR; j++)
             for (int i = xL; i <= xR; i++)
@@ -121,13 +75,38 @@ public class SinglePlayer : InitializeUser
                 {
                     if (enemyShips[i, j] == 1)
                     {
+                        for (int index = 0; index < ShipController.AIShipListing.Count; index++)
+                        {
+                            if (ShipController.AIShipListing[index].IsAlive)
+                            {
+                                foreach (ShipCoords shCoord in ShipController.AIShipListing[index].Coords)
+                                {
+                                    if (shCoord.x == i && shCoord.y == j)
+                                    {
+                                        ShipController.AIShipListing[index].ShootsRemaining--;
+                                        if (ShipController.AIShipListing[index].ShootsRemaining == 0)
+                                        {
+                                            ShipController.AIShipListing[index].IsAlive = false;
+                                            AiShipsLeft--;
+                                            Debug.LogError("Ai Ship: " + ShipController.AIShipListing[index].Size + " died!");
+                                        }
+
+                                    }
+                                }
+                            }
+                        }
                         enemyBg.BattleFieldUpdater(i, j, true);
                         allowFire = true;
                         ShipController.StepArrow.color = new Color(0f, 255f, 0f);
+                        if (AiShipsLeft == 0)
+                        {
+                            Debug.LogError("!!!YOU WON!!");
+                        }
                     }
                     else
                     {
                         enemyBg.BattleFieldUpdater(i, j, false);
+                        StartCoroutine(AiShootingCooldown());
                     }
                 }
                 catch (Exception ex)
@@ -136,6 +115,8 @@ public class SinglePlayer : InitializeUser
                 }
             }
     }
+
+    #region Start single Play and AI ships spawning
 
     protected override void StartPlay()
     {
@@ -171,7 +152,6 @@ public class SinglePlayer : InitializeUser
 
     private int CompShipPosSetter(int size)
     {
-        Debug.LogError("Recursion " + size);
         int x, y;
         x = UnityEngine.Random.Range(0, (11 - size));
         y = UnityEngine.Random.Range(0, (11 - size));
@@ -179,7 +159,7 @@ public class SinglePlayer : InitializeUser
         float dir = UnityEngine.Random.Range(0f, 1f);
 
         int setter = 0;
-
+        
         for (int j = 0; j < size; j++)  // проверка свободные поля или нет
         {
             if (dir < 0.5f)
@@ -198,12 +178,16 @@ public class SinglePlayer : InitializeUser
             }
                 
         }
+
+        ShipCoords[] shipCoords = new ShipCoords[size];
+
         for (int j = 0; j < size; j++)  // установка в позиции
         {
             if (dir < 0.5f)
             {
                 if (enemyShips[x + j, y] == 0)
                 {
+                    shipCoords[j] = new ShipCoords(x + j, y);
                     enemyShips[x + j, y] = 1;
                     setter++;
                 }
@@ -212,6 +196,7 @@ public class SinglePlayer : InitializeUser
             {
                 if (enemyShips[x, y + j] == 1)
                 {
+                    shipCoords[j] = new ShipCoords(x, y + j);
                     enemyShips[x, y + j] = 1;
                     setter++;
                 }
@@ -219,11 +204,67 @@ public class SinglePlayer : InitializeUser
         }
         if (setter == size)
         {
-            // Добавить запись кораблей в аррай компьютера
+            // Добавляем корабли АИ в список
+            ShipController.AIShipListing.Add(new Ship(shipCoords, true, size));
             return 1;
         }
         else
             return -1;
         
+    }
+
+    #endregion
+
+    private IEnumerator AiShootingCooldown()
+    {
+        yield return new WaitForSeconds(UnityEngine.Random.Range(0.5f, 1f));
+        AIshooting();
+    }
+
+    private void AIshooting()
+    {
+        int shootX, shootY;
+        shootX = UnityEngine.Random.Range(0, 10);
+        shootY = UnityEngine.Random.Range(0, 10);
+
+        // если по указанным координатам комп уже стрелял - повторить попытку
+        if (myBg.BattleFieldArray[shootX, shootY] == 0 || myBg.BattleFieldArray[shootX, shootY] == 1)
+            AIshooting();
+
+        if (ships[shootX, shootY] == 1)             // при попадании - АИ стреляет ещё разок
+        {
+            for (int index = 0; index < ShipController.ShipListing.Count; index++)
+            {
+                if (ShipController.ShipListing[index].IsAlive)
+                {
+                    foreach (ShipCoords shCoord in ShipController.ShipListing[index].Coords)
+                    {
+                        if (shCoord.x == shootX && shCoord.y == shootY)
+                        {
+                            ShipController.ShipListing[index].ShootsRemaining--;
+                            if (ShipController.ShipListing[index].ShootsRemaining == 0)
+                            {
+                                ShipController.ShipListing[index].IsAlive = false;
+                                UsrShipsLeft--;
+                                Debug.LogError("user Ship: " + ShipController.ShipListing[index].Size + " died!");
+                            }
+                        }
+                    }
+                }
+            }
+            allowFire = false;
+            myBg.BattleFieldUpdater(shootX, shootY, true);
+            if (UsrShipsLeft == 0)
+            {
+                Debug.LogError("!!!AI WON!!");
+            }
+            AIshooting();
+        }
+        else
+        {
+            allowFire = true;
+            myBg.BattleFieldUpdater(shootX, shootY, false);
+            ShipController.StepArrow.color = new Color(0f, 255f, 0f);
+        }
     }
 }

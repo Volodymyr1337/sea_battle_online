@@ -31,7 +31,8 @@ public class ShipSortingScene : MonoBehaviour
     {
         get; private set;
     }
-    public List<Ship> ShipListing = new List<Ship>();
+    public List<Ship> ShipListing = new List<Ship>();       // список моих кораблей
+    public List<Ship> AIShipListing = new List<Ship>();     // список кораблей компьютера в одиночной игре
 
     public Text[] shipCount;                // нумерация оставшегося кол-ва доступных кораблей
 
@@ -573,11 +574,27 @@ public class Ship       // клас содержащий информацию о
         get; private set;
     }
 
+    public int Size
+    {
+        get; private set;
+    }
+
     public Ship(ShipCoords[] coords, bool isAlive, int shootsRemaining)
     {
+        Size = coords.Length;
         Coords = coords;
         IsAlive = isAlive;
         ShootsRemaining = shootsRemaining;
+    }
+
+    public override string ToString()
+    {
+        string s = "";
+        foreach (ShipCoords sc in Coords)
+        {
+            s += sc.ToString();
+        }
+        return (s + ", isAlive " + IsAlive + ", shootsToDie: " + ShootsRemaining);
     }
 }
 
@@ -606,7 +623,7 @@ public struct ShootingArea      // описывает квадрат пораж�
         sizeX = xs;
         sizeY = ys;
     }
-
+    
     public override string ToString()
     {
         return ("Shooting area size (" + sizeX + ", " + sizeY + ")");
