@@ -2,8 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-
 /*
  * - Работает через пень-колоду
  * - зарефакторить
@@ -116,6 +114,7 @@ public class SinglePlayer : InitializeUser
                     if (AiShipsLeft == 0)
                     {
                         Debug.LogError("!!!YOU WON!!");
+                        ShipSortingScene.GameOverEvent();
                     }
                 }
                 else

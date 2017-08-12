@@ -20,7 +20,7 @@ public class ShipSortingScene : MonoBehaviour
     public GameObject battleGroundObj;      // Полевая сетка, необходимо для 
     Battleground bg;                        // координатного размещения кораблей (Центр в [0,0])
     BoxCollider2D shipCol = null;           // Для последующей идентификации размера коллайдера
-    float kX = 0f, kY = 0f;                  // коеф для поправки положения курсора и положения коробля на поле
+    float kX = 0f, kY = 0f;                 // коеф для поправки положения курсора и положения коробля на поле
     public static bool Landing = true;      // контроль возможности посадки корабля
     bool onTheField = false;                // нахождение корабля над игровым полем
     bool OutOfMapRange = false;             // если края корабля выходят за пределы поля
@@ -42,14 +42,24 @@ public class ShipSortingScene : MonoBehaviour
 
     public Image StepArrow;                 // стрелка показывающая чей сейчас ход
 
+    public GameObject GameOverWindow;       // окно окончания игры
+
     public GameObject Gun                   // Прицел выбранного орудия
     {
         get; private set;
     }
+
     public Text WaitingText;                // поле с текстом ожидания другого игрока
+
+
+    public delegate void GameOver();
+    public static GameOver GameOverEvent;
 
     private void Start()
     {
+        if (GameOverWindow.activeSelf)
+            GameOverWindow.SetActive(false);
+
         bg = battleGroundObj.GetComponent<Battleground>();
 
         Gun = null;
@@ -59,9 +69,9 @@ public class ShipSortingScene : MonoBehaviour
         for (int i = 0; i < bg.size_Y; i++)
             for (int j = 0; j < bg.size_X; j++)
             {
-                ShipFieldPos[i, j] = 0; 
+                ShipFieldPos[i, j] = 0;
             }
-                
+
         xMaxOffset = battleGroundObj.transform.position.x;
         xMinOffset = battleGroundObj.transform.position.x + bg.size_X;
         yMaxOffset = battleGroundObj.transform.position.y + bg.size_Y;
@@ -72,6 +82,11 @@ public class ShipSortingScene : MonoBehaviour
             PoolManager.Instance.CreatePool(Resources.Load(i.ToString()) as GameObject, i, counter);
             shipCount[i - 1].text = PoolManager.Instance.CountOfShips(i) + "x";
         }
+        // вырубаем скрипт для одиночной игры на всякий пожарный т.к. префаб забит прямо в сцену
+        if (PlayerNetwork.Instance.isMultiplayerGame)
+            GameObject.Find("SinglePlayer").SetActive(false);
+
+        GameOverEvent = new GameOver(GameOverOn);
     }
 
     private void Update()
@@ -520,8 +535,6 @@ public class ShipSortingScene : MonoBehaviour
         {
             SinglePlayer.OnClickNext();            
         }
-            
-        //Instantiate(Resources.Load("SinglePlayer"));
     }
     //
     // Кнопка смены оружия
@@ -551,7 +564,11 @@ public class ShipSortingScene : MonoBehaviour
         else
             SceneManager.LoadScene("MainMenu");
     }
-
+    
+    public void GameOverOn()
+    {
+        GameOverWindow.SetActive(true);
+    }
 }
 public class Ship       // клас содержащий информацию о корабле
 {

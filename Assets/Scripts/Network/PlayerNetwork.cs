@@ -86,4 +86,6 @@ public class PlayerNetwork : MonoBehaviour
         shootingArea.sizeX = (float)((area >> 4) & mask);
         shootingArea.sizeY = (float)(area & mask);
     }
+
+
 }
