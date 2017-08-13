@@ -152,11 +152,18 @@ public class InitializeUser : Photon.MonoBehaviour
         ShipController.SetShipPosPanel.SetActive(false);
         ShipController.BattleSceneCanvas.SetActive(true);
         ShipController.EnemyField.SetActive(true);
-        ShipController.WaitingText.gameObject.SetActive(false);
         ShipController.StepArrow.gameObject.SetActive(true);
         gameStart = true;
-        
+
+        if (PlayerNetwork.Instance.isMultiplayerGame)
+            photonView.RPC("CheckEnemyName", PhotonTargets.Others, PlayerNetwork.Instance.PlayerName);
+
         enemyBg = GameObject.Find("Enemy_field").GetComponent<Battleground>();
+    }
+    [PunRPC]
+    private void CheckEnemyName(string name)
+    {
+        ShipController.WaitingText.text = name;
     }
 
     // +++ ВЫСТРЕЛ +++

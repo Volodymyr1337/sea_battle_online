@@ -184,6 +184,8 @@ public class SinglePlayer : InitializeUser
 
         yield return new WaitForSeconds(.2f);   // чисто стратегический кд
 
+        ShipController.WaitingText.text = "Android";
+
         base.StartPlay();
     }
 
