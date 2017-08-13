@@ -81,6 +81,12 @@ public class PoolManager : MonoBehaviour
     public void ReturnGun(int key, GameObject gun)    // Возврат в пул
     {
         gun.SetActive(false);
-        poolWeapons[key].Enqueue(gun);
+        if (poolWeapons.ContainsKey(key))
+            poolWeapons[key].Enqueue(gun);
+    }
+
+    public void RemoveWeapon(int key)
+    {
+        poolWeapons.Remove(key);
     }
 }

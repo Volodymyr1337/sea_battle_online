@@ -46,4 +46,5 @@ MonoBehaviour:
   - ModifiedFire
   - RepeatFiring
   - AllowFiring
+  - GameOver
   DisableAutoOpenWizard: 1

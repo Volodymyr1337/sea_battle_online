@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 public class PlayerNetwork : MonoBehaviour
 {
     public static PlayerNetwork Instance;
-    public string PlayerName { get; private set; }
+    public string PlayerName { get; set; }
     private PhotonView PhotonView;
     private int PlayersInGame = 0;
 
@@ -22,10 +22,11 @@ public class PlayerNetwork : MonoBehaviour
         shootingArea = new ShootingArea();
         PhotonView = GetComponent<PhotonView>();
 
-        /* 
-         * !!! USERNAME не забыть настроить !!!
-         */
-        PlayerName = "android#" + Random.Range(100, 999);
+        if (!PlayerPrefs.HasKey("userName"))
+            PlayerPrefs.SetString("userName", "unnamed");
+
+        PlayerName = PlayerPrefs.GetString("userName");
+
 
         SceneManager.sceneLoaded += OnSceneFinishedLoading;
     }
@@ -86,4 +87,6 @@ public class PlayerNetwork : MonoBehaviour
         shootingArea.sizeX = (float)((area >> 4) & mask);
         shootingArea.sizeY = (float)(area & mask);
     }
+
+
 }

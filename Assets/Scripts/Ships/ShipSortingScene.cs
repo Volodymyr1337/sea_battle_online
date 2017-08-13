@@ -9,6 +9,8 @@ using System.Collections.Generic;
 //
 public class ShipSortingScene : MonoBehaviour
 {
+    public static ShipSortingScene Instance;
+
     public static Transform ship = null;    // корабль в который тыцнули мышью
     List<Transform> _shipCoords = new List<Transform>();
 
@@ -20,12 +22,15 @@ public class ShipSortingScene : MonoBehaviour
     public GameObject battleGroundObj;      // Полевая сетка, необходимо для 
     Battleground bg;                        // координатного размещения кораблей (Центр в [0,0])
     BoxCollider2D shipCol = null;           // Для последующей идентификации размера коллайдера
-    float kX = 0f, kY = 0f;                  // коеф для поправки положения курсора и положения коробля на поле
+    float kX = 0f, kY = 0f;                 // коеф для поправки положения курсора и положения коробля на поле
     public static bool Landing = true;      // контроль возможности посадки корабля
     bool onTheField = false;                // нахождение корабля над игровым полем
     bool OutOfMapRange = false;             // если края корабля выходят за пределы поля
     // Коеффициенты для невозможности установить корабль за пределами поля
     float xMaxOffset, xMinOffset, yMaxOffset, yMinOffset;
+
+    public int currentGunId;                // id текущего орудия
+    public Button[] gunButtons;
 
     public int[,] ShipFieldPos              // Утвержденные позиции кораблей
     {
@@ -42,14 +47,26 @@ public class ShipSortingScene : MonoBehaviour
 
     public Image StepArrow;                 // стрелка показывающая чей сейчас ход
 
+    public GameObject GameOverWindow;       // окно окончания игры
+
     public GameObject Gun                   // Прицел выбранного орудия
     {
-        get; private set;
+        get; set;
     }
+
     public Text WaitingText;                // поле с текстом ожидания другого игрока
+
+
+    public delegate void GameOver();
+    public static GameOver GameOverEvent;
 
     private void Start()
     {
+        Instance = this;
+
+        if (GameOverWindow.activeSelf)
+            GameOverWindow.SetActive(false);
+
         bg = battleGroundObj.GetComponent<Battleground>();
 
         Gun = null;
@@ -59,9 +76,9 @@ public class ShipSortingScene : MonoBehaviour
         for (int i = 0; i < bg.size_Y; i++)
             for (int j = 0; j < bg.size_X; j++)
             {
-                ShipFieldPos[i, j] = 0; 
+                ShipFieldPos[i, j] = 0;
             }
-                
+
         xMaxOffset = battleGroundObj.transform.position.x;
         xMinOffset = battleGroundObj.transform.position.x + bg.size_X;
         yMaxOffset = battleGroundObj.transform.position.y + bg.size_Y;
@@ -72,16 +89,18 @@ public class ShipSortingScene : MonoBehaviour
             PoolManager.Instance.CreatePool(Resources.Load(i.ToString()) as GameObject, i, counter);
             shipCount[i - 1].text = PoolManager.Instance.CountOfShips(i) + "x";
         }
-    }
+        // вырубаем скрипт для одиночной игры на всякий пожарный т.к. префаб забит прямо в сцену
+        if (PlayerNetwork.Instance.isMultiplayerGame)
+            GameObject.Find("SinglePlayer").SetActive(false);
 
-    private void Update()
-    {
-        GunAimMovements();
+        GameOverEvent = new GameOver(GameOverOn);
     }
-
+    
     private void LateUpdate()
     {
-        ShipMovements();        
+        ShipMovements();
+
+        GunAimMovements();
     }
 
     #region Ships Managmenet
@@ -457,7 +476,7 @@ public class ShipSortingScene : MonoBehaviour
     #endregion
 
 
-    private void GunAimMovements()   // передвижения прицела
+    public void GunAimMovements()   // передвижения прицела
     {
         if (Gun != null)
         {
@@ -513,15 +532,13 @@ public class ShipSortingScene : MonoBehaviour
         WaitingText.text = "Waiting another player.";
 
         // Создаём объекты прицелов
-        for (int i = 1; i < 7; i++)
+        for (int i = 1; i < 6; i++)
             PoolManager.Instance.CreateWeapons(Resources.Load("Weapon/gun" + i) as GameObject, i);
 
         if (!PlayerNetwork.Instance.isMultiplayerGame)
         {
             SinglePlayer.OnClickNext();            
         }
-            
-        //Instantiate(Resources.Load("SinglePlayer"));
     }
     //
     // Кнопка смены оружия
@@ -534,6 +551,8 @@ public class ShipSortingScene : MonoBehaviour
     {
         if (Gun != null)
             PoolManager.Instance.ReturnGun((int)Char.GetNumericValue(Gun.name.ToCharArray(3, 1)[0]), Gun);
+
+        currentGunId = id;
 
         Gun = PoolManager.Instance.GetGun(id);
         Gun.SetActive(true);
@@ -551,7 +570,11 @@ public class ShipSortingScene : MonoBehaviour
         else
             SceneManager.LoadScene("MainMenu");
     }
-
+    
+    public void GameOverOn()
+    {
+        GameOverWindow.SetActive(true);
+    }
 }
 public class Ship       // клас содержащий информацию о корабле
 {
