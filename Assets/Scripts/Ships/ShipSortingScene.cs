@@ -9,6 +9,8 @@ using System.Collections.Generic;
 //
 public class ShipSortingScene : MonoBehaviour
 {
+    public static ShipSortingScene Instance;
+
     public static Transform ship = null;    // корабль в который тыцнули мышью
     List<Transform> _shipCoords = new List<Transform>();
 
@@ -26,6 +28,9 @@ public class ShipSortingScene : MonoBehaviour
     bool OutOfMapRange = false;             // если края корабля выходят за пределы поля
     // Коеффициенты для невозможности установить корабль за пределами поля
     float xMaxOffset, xMinOffset, yMaxOffset, yMinOffset;
+
+    public int currentGunId;                // id текущего орудия
+    public Button[] gunButtons;
 
     public int[,] ShipFieldPos              // Утвержденные позиции кораблей
     {
@@ -46,7 +51,7 @@ public class ShipSortingScene : MonoBehaviour
 
     public GameObject Gun                   // Прицел выбранного орудия
     {
-        get; private set;
+        get; set;
     }
 
     public Text WaitingText;                // поле с текстом ожидания другого игрока
@@ -57,6 +62,8 @@ public class ShipSortingScene : MonoBehaviour
 
     private void Start()
     {
+        Instance = this;
+
         if (GameOverWindow.activeSelf)
             GameOverWindow.SetActive(false);
 
@@ -88,15 +95,12 @@ public class ShipSortingScene : MonoBehaviour
 
         GameOverEvent = new GameOver(GameOverOn);
     }
-
-    private void Update()
-    {
-        GunAimMovements();
-    }
-
+    
     private void LateUpdate()
     {
-        ShipMovements();        
+        ShipMovements();
+
+        GunAimMovements();
     }
 
     #region Ships Managmenet
@@ -472,7 +476,7 @@ public class ShipSortingScene : MonoBehaviour
     #endregion
 
 
-    private void GunAimMovements()   // передвижения прицела
+    public void GunAimMovements()   // передвижения прицела
     {
         if (Gun != null)
         {
@@ -528,7 +532,7 @@ public class ShipSortingScene : MonoBehaviour
         WaitingText.text = "Waiting another player.";
 
         // Создаём объекты прицелов
-        for (int i = 1; i < 7; i++)
+        for (int i = 1; i < 6; i++)
             PoolManager.Instance.CreateWeapons(Resources.Load("Weapon/gun" + i) as GameObject, i);
 
         if (!PlayerNetwork.Instance.isMultiplayerGame)
@@ -547,6 +551,8 @@ public class ShipSortingScene : MonoBehaviour
     {
         if (Gun != null)
             PoolManager.Instance.ReturnGun((int)Char.GetNumericValue(Gun.name.ToCharArray(3, 1)[0]), Gun);
+
+        currentGunId = id;
 
         Gun = PoolManager.Instance.GetGun(id);
         Gun.SetActive(true);

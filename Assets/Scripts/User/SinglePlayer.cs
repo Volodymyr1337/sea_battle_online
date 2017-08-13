@@ -20,15 +20,19 @@ public class SinglePlayer : InitializeUser
     private int UsrShipsLeft = 10;
     private List<AiGun> AiGuns = new List<AiGun>();
 
+    // счетчики убитых кораблей компьютера и человека
+    private int aiKills;
+    private int userKills;
+    
+
     protected override void Awake()
     {
         base.Awake();
-        AiGuns.Add(new AiGun(new ShootingArea(0, 0), 99, GunName.Default));
+        AiGuns.Add(new AiGun(new ShootingArea(0, 0), 99999999, GunName.Default));
         AiGuns.Add(new AiGun(new ShootingArea(2, 0), 1, GunName.Airstrike));
         AiGuns.Add(new AiGun(new ShootingArea(1, 1), 1, GunName.RocketLaunch));
         AiGuns.Add(new AiGun(new ShootingArea(2, 1), 1, GunName.Bombs));
         AiGuns.Add(new AiGun(new ShootingArea(3, 3), 1, GunName.Nuclear));
-        AiGuns.Add(new AiGun(new ShootingArea(0, 0), 1, GunName.Scan));
     }
 
     protected override void Start()
@@ -49,6 +53,7 @@ public class SinglePlayer : InitializeUser
                 enemyShips[i, j] = 0;
             }
         }
+        
     }
 
     protected override void Update()
@@ -66,6 +71,15 @@ public class SinglePlayer : InitializeUser
             if (packed_data == -1)
                 return;
 
+            PlayerNetwork.Instance.shootingArea = new ShootingArea();   // после выстрела возвращаем стрельбу в дефолтный размер 1х1
+            if (ShipSortingScene.Instance.currentGunId != 1)
+            {
+                if (ShipSortingScene.Instance.Gun != null)
+                {
+                    PoolManager.Instance.RemoveWeapon(ShipSortingScene.Instance.currentGunId);
+                    ShipSortingScene.Instance.gunButtons[ShipSortingScene.Instance.currentGunId - 1].interactable = false;
+                }                
+            }
             ModifiedFire(packed_data);
         }
     }
@@ -100,7 +114,7 @@ public class SinglePlayer : InitializeUser
                                     {
                                         ShipController.AIShipListing[index].IsAlive = false;
                                         AiShipsLeft--;
-                                        Debug.LogError("Ai Ship: " + ShipController.AIShipListing[index].Size + " died!");
+                                        userKills++;
                                     }
 
                                 }
@@ -109,12 +123,36 @@ public class SinglePlayer : InitializeUser
                     }
                     enemyBg.BattleFieldUpdater(i, j, true);
                     usrHits++;
-                        
-                   
+
                     if (AiShipsLeft == 0)
                     {
-                        Debug.LogError("!!!YOU WON!!");
                         ShipSortingScene.GameOverEvent();
+                        playersParams.Clear();
+                        playersParams.Add("winner", PlayerNetwork.Instance.PlayerName);
+                        playersParams.Add("looser", "Android");
+                        playersParams.Add("usrKills", userKills.ToString());
+                        playersParams.Add("aiKills", aiKills.ToString());
+                        playersParams.Add("userExp", (userKills * 2).ToString());
+                        playersParams.Add("aiExp", (aiKills * 0.5).ToString());
+
+                        if (PlayerPrefs.HasKey("usrExpirience"))
+                        {
+                            PlayerPrefs.GetInt("usrExpirience");
+                            PlayerPrefs.SetInt("usrExpirience", (PlayerPrefs.GetInt("usrExpirience") + (int)(userKills * 2)));
+                        }
+                        else
+                            PlayerPrefs.SetInt("usrExpirience", userKills);
+
+                        if (PlayerPrefs.HasKey("AiExpirience"))
+                        {
+                            PlayerPrefs.GetInt("AiExpirience");
+                            PlayerPrefs.SetInt("AiExpirience", (PlayerPrefs.GetInt("AiExpirience") + (int)(aiKills * 0.8)));
+                        }
+                        else
+                            PlayerPrefs.SetInt("AiExpirience", aiKills);
+
+                        GameOverWindow.Instance.GameOver(playersParams);
+                        return;
                     }
                 }
                 else
@@ -243,18 +281,20 @@ public class SinglePlayer : InitializeUser
     {
         int randWeapon = UnityEngine.Random.Range(0, AiGuns.Count);
 
-        Debug.Log("wpn index " + randWeapon);
         int shootX, shootY;
         shootX = UnityEngine.Random.Range(0, (10 - (int)AiGuns[randWeapon].ShootArea.sizeX));
         shootY = UnityEngine.Random.Range(0, (10 - (int)AiGuns[randWeapon].ShootArea.sizeY));
 
         // если по указанным координатам комп уже стрелял - повторить попытку
         int hitCount = 0;
-        for (int i = shootX; i <= AiGuns[randWeapon].ShootArea.sizeX; i++)
-            for (int j = shootY; j <= AiGuns[randWeapon].ShootArea.sizeY; j++)
+        for (int i = shootX; i <= (shootX + AiGuns[randWeapon].ShootArea.sizeX); i++)
+            for (int j = shootY; j <= (shootY + AiGuns[randWeapon].ShootArea.sizeY); j++)
             {
                 if (myBg.BattleFieldArray[i, j] == 0 || myBg.BattleFieldArray[i, j] == 1)
+                {
                     hitCount++;
+                }
+                    
             }
         if (hitCount == (AiGuns[randWeapon].ShootArea.sizeX + 1) * (AiGuns[randWeapon].ShootArea.sizeY + 1))
         {
@@ -281,7 +321,7 @@ public class SinglePlayer : InitializeUser
                                     {
                                         ShipController.ShipListing[index].IsAlive = false;
                                         UsrShipsLeft--;
-                                        Debug.LogError("user Ship: " + ShipController.ShipListing[index].Size + " died!");
+                                        aiKills++;
                                     }
                                 }
                             }
@@ -292,7 +332,33 @@ public class SinglePlayer : InitializeUser
                     myBg.BattleFieldUpdater(i, j, true);
                     if (UsrShipsLeft == 0)
                     {
-                        Debug.LogError("!!!AI WON!!");
+                        ShipSortingScene.GameOverEvent();
+                        playersParams.Clear();
+                        playersParams.Add("winner", "Android");
+                        playersParams.Add("looser", "Android");
+                        playersParams.Add("usrKills", userKills.ToString());
+                        playersParams.Add("aiKills", aiKills.ToString());
+                        playersParams.Add("userExp", userKills.ToString());
+                        playersParams.Add("aiExp", (aiKills * 2.3).ToString());
+
+                        if (PlayerPrefs.HasKey("usrExpirience"))
+                        {
+                            PlayerPrefs.GetInt("usrExpirience");
+                            PlayerPrefs.SetInt("usrExpirience", (PlayerPrefs.GetInt("usrExpirience") + (int)(userKills * 0.8)));
+                        }                            
+                        else
+                            PlayerPrefs.SetInt("usrExpirience", userKills);
+
+                        if (PlayerPrefs.HasKey("AiExpirience"))
+                        {
+                            PlayerPrefs.GetInt("AiExpirience");
+                            PlayerPrefs.SetInt("AiExpirience", (PlayerPrefs.GetInt("AiExpirience") + (int)(aiKills * 2)));
+                        }
+                        else
+                            PlayerPrefs.SetInt("AiExpirience", aiKills);
+
+                        GameOverWindow.Instance.GameOver(playersParams);
+                        return;
                     }                    
                 }
                 else
@@ -304,7 +370,7 @@ public class SinglePlayer : InitializeUser
         AiGuns[randWeapon].Count--;
         if (AiGuns[randWeapon].Count == 0)
             AiGuns.RemoveAt(randWeapon);
-
+        
         if (AiHits > 0)
         {
             allowFire = false;

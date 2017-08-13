@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using UnityEngine;
 
 public class InitializeUser : Photon.MonoBehaviour
@@ -18,12 +19,12 @@ public class InitializeUser : Photon.MonoBehaviour
 
     protected Battleground enemyBg;             // поле отображающее попадания/промахи по врагу (присваивается в StartPlay)
 
-    public static ShootingArea ShootingArea;
-
     public static bool allowFire;               // доступность стрельбы в очереди
+    protected Hashtable playersParams;          // параметры игроков в сессии
 
     protected virtual void Awake()
     {
+        playersParams = new Hashtable();
         try
         {
             PhotonView = GetComponent<PhotonView>();
@@ -59,15 +60,6 @@ public class InitializeUser : Photon.MonoBehaviour
         {
             timer = 2f;
             photonView.RPC("StartPlayChecking", PhotonTargets.Others);
-
-            /* ---- ПОКА ДЕБАГГИНГ ---- */
-            //ShipController.SetShipPosPanel.SetActive(false);
-            //ShipController.BattleSceneCanvas.SetActive(true);
-            //ShipController.EnemyField.SetActive(true);
-            //ShipController.WaitingText.gameObject.SetActive(false);
-
-            //gameStart = true;
-            /* ---- ПОСЛЕ УДАЛИТЬ!! ---- */
         }       
 
         if (gameStart && allowFire && PhotonView.isMine)
@@ -82,6 +74,16 @@ public class InitializeUser : Photon.MonoBehaviour
 
             if (packed_data == -1)
                 return;
+
+            PlayerNetwork.Instance.shootingArea = new ShootingArea();   // после выстрела возвращаем стрельбу в дефолтный размер 1х1
+            if (ShipSortingScene.Instance.currentGunId != 1)
+            {
+                if (ShipSortingScene.Instance.Gun != null)
+                {
+                    PoolManager.Instance.RemoveWeapon(ShipSortingScene.Instance.currentGunId);
+                    ShipSortingScene.Instance.gunButtons[ShipSortingScene.Instance.currentGunId - 1].interactable = false;
+                }
+            }
 
             photonView.RPC("ModifiedFire", PhotonTargets.Others, packed_data);
         }
@@ -153,9 +155,7 @@ public class InitializeUser : Photon.MonoBehaviour
         ShipController.WaitingText.gameObject.SetActive(false);
         ShipController.StepArrow.gameObject.SetActive(true);
         gameStart = true;
-
-        ShootingArea = new ShootingArea();  // по дефолту выстрелы размером 1х1
-
+        
         enemyBg = GameObject.Find("Enemy_field").GetComponent<Battleground>();
     }
 
@@ -184,7 +184,7 @@ public class InitializeUser : Photon.MonoBehaviour
                     allowFire = false;
                     ShipController.StepArrow.color = new Color(255f, 0f, 0f);
                     photonView.RPC("AllowFiring", PhotonTargets.Others, true);
-                    break;                
+                    break;
                 }
             }
         
@@ -194,7 +194,7 @@ public class InitializeUser : Photon.MonoBehaviour
             {
                 try
                 {
-                    if (ships[i, j] == 1)
+                    if (ShipChecker(i, j))
                     {
                         myBg.BattleFieldUpdater(i, j, true);
                         photonView.RPC("TargetHitting", PhotonTargets.Others, (byte)((i << 4) | j), true);
@@ -214,7 +214,6 @@ public class InitializeUser : Photon.MonoBehaviour
 
     private bool ShipChecker(int x, int y)
     {
-        /* информация о кораблях
         foreach (Ship sh in ShipController.ShipListing)
         {
             foreach (ShipCoords coords in sh.Coords)
@@ -223,19 +222,22 @@ public class InitializeUser : Photon.MonoBehaviour
                 {
                     print("HiiiiiiiiiiiiiT! " + coords.x + ", " + coords.y + " | Lives " + sh.ShootsRemaining);
                     sh.ShootsRemaining--;
-                }
-                else if (coords.x == x && coords.y == y && sh.ShootsRemaining == 0)
-                {
-                    print("YOU DEAD MAAAN!!!");
+
+                    Debug.Log(sh.ShootsRemaining + " ships left " + ShipController.ShipListing.Count);
+                    if (sh.ShootsRemaining == 0)
+                    {
+                        Debug.Log("Remove ship");
+                        ShipController.ShipListing.Remove(sh);
+                        if (ShipController.ShipListing.Count == 0)
+                        {
+                            photonView.RPC("GameOver", PhotonTargets.Others, PlayerNetwork.Instance.PlayerName, ShipController.ShipListing.Count, PlayerPrefs.HasKey("usrExpirience") ? PlayerPrefs.GetInt("usrExpirience") : 0);
+                            return true;
+                        }
+                    }
+                    return true;
                 }
             }
         }
-        */
-
-        print(ships[x, y] + " | Original pos " + ShipController.ShipFieldPos[x, y]);
-
-        if (ships[x, y] == 1)
-            return true;
         
         return false;
     }
@@ -254,5 +256,16 @@ public class InitializeUser : Photon.MonoBehaviour
     {
         allowFire = allow;
         ShipController.StepArrow.color = new Color(0f, 255f, 0f);
+    }
+    [PunRPC]
+    private void GameOver(string scndUser, int shipsKilled, int usrExp)
+    {
+        if (gameStart)
+        {
+            photonView.RPC("GameOver", PhotonTargets.Others, PlayerNetwork.Instance.PlayerName, ShipController.ShipListing.Count, PlayerPrefs.GetInt("usrExpirience"));
+            ShipSortingScene.GameOverEvent();
+            gameStart = false;
+            GameOverWindow.Instance.GameOver(scndUser, shipsKilled, usrExp);
+        }
     }
 }
