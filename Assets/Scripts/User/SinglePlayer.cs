@@ -72,6 +72,7 @@ public class SinglePlayer : InitializeUser
                 return;
 
             PlayerNetwork.Instance.shootingArea = new ShootingArea();   // после выстрела возвращаем стрельбу в дефолтный размер 1х1
+            
             if (ShipSortingScene.Instance.currentGunId != 1)
             {
                 if (ShipSortingScene.Instance.Gun != null)

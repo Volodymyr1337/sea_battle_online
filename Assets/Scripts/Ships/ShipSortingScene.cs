@@ -486,7 +486,6 @@ public class ShipSortingScene : MonoBehaviour
             if (pos.x < EnemyField.transform.position.x || pos.x > (EnemyField.transform.position.x + bg.size_X) ||
                 pos.y < EnemyField.transform.position.y || pos.y > (EnemyField.transform.position.y + bg.size_Y))
             {
-                Gun.transform.position = pos;
                 return;
             }
             else
@@ -497,6 +496,7 @@ public class ShipSortingScene : MonoBehaviour
                 {
                     PoolManager.Instance.ReturnGun((int)Char.GetNumericValue(Gun.name.ToCharArray(3, 1)[0]), Gun);
                     Gun = null;
+                    OnChangeWeaponBtnId(1);
                 }
             }
         }
@@ -556,6 +556,7 @@ public class ShipSortingScene : MonoBehaviour
 
         Gun = PoolManager.Instance.GetGun(id);
         Gun.SetActive(true);
+        Gun.transform.position = new Vector3(6f, 5f, 0f);       // устанавливаем прицел в середину карты
     }
     //
     // кнопка ВЫХОДА в меню
