@@ -73,14 +73,11 @@ public class SinglePlayer : InitializeUser
 
             PlayerNetwork.Instance.shootingArea = new ShootingArea();   // после выстрела возвращаем стрельбу в дефолтный размер 1х1
             
+            if (!Arsenal.Instance.reposition)
+                Arsenal.Instance.ArsenalPanelReposition();
+
             if (ShipSortingScene.Instance.currentGunId != 1)
-            {
-                if (ShipSortingScene.Instance.Gun != null)
-                {
-                    PoolManager.Instance.RemoveWeapon(ShipSortingScene.Instance.currentGunId);
-                    ShipSortingScene.Instance.gunButtons[ShipSortingScene.Instance.currentGunId - 1].interactable = false;
-                }                
-            }
+                ShipSortingScene.Instance.gunButtons[ShipSortingScene.Instance.currentGunId - 1].interactable = false;
             ModifiedFire(packed_data);
         }
     }

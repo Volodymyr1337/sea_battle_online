@@ -495,6 +495,7 @@ public class ShipSortingScene : MonoBehaviour
                 if (Input.GetMouseButtonUp(0))
                 {
                     PoolManager.Instance.ReturnGun((int)Char.GetNumericValue(Gun.name.ToCharArray(3, 1)[0]), Gun);
+                    
                     Gun = null;
                     OnChangeWeaponBtnId(1);
                 }
