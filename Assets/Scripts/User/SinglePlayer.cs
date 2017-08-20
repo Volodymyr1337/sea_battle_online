@@ -75,9 +75,10 @@ public class SinglePlayer : InitializeUser
             
             if (!Arsenal.Instance.reposition)
                 Arsenal.Instance.ArsenalPanelReposition();
-
+            
             if (ShipSortingScene.Instance.currentGunId != 1)
                 ShipSortingScene.Instance.gunButtons[ShipSortingScene.Instance.currentGunId - 1].interactable = false;
+
             ModifiedFire(packed_data);
         }
     }

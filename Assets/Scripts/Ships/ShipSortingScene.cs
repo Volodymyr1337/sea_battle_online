@@ -63,7 +63,7 @@ public class ShipSortingScene : MonoBehaviour
     private void Start()
     {
         Instance = this;
-
+        currentGunId = 1;
         if (GameOverWindow.activeSelf)
             GameOverWindow.SetActive(false);
 
