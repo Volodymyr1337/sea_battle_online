@@ -76,15 +76,12 @@ public class InitializeUser : Photon.MonoBehaviour
                 return;
 
             PlayerNetwork.Instance.shootingArea = new ShootingArea();   // после выстрела возвращаем стрельбу в дефолтный размер 1х1
-            if (ShipSortingScene.Instance.currentGunId != 1)
-            {
-                if (ShipSortingScene.Instance.Gun != null)
-                {
-                    PoolManager.Instance.RemoveWeapon(ShipSortingScene.Instance.currentGunId);
-                    ShipSortingScene.Instance.gunButtons[ShipSortingScene.Instance.currentGunId - 1].interactable = false;
-                }
-            }
 
+            if (!Arsenal.Instance.reposition)
+                Arsenal.Instance.ArsenalPanelReposition();
+
+            if (ShipSortingScene.Instance.currentGunId != 1)
+                ShipSortingScene.Instance.gunButtons[ShipSortingScene.Instance.currentGunId - 1].interactable = false;
             photonView.RPC("ModifiedFire", PhotonTargets.Others, packed_data);
         }
     }
@@ -152,11 +149,18 @@ public class InitializeUser : Photon.MonoBehaviour
         ShipController.SetShipPosPanel.SetActive(false);
         ShipController.BattleSceneCanvas.SetActive(true);
         ShipController.EnemyField.SetActive(true);
-        ShipController.WaitingText.gameObject.SetActive(false);
         ShipController.StepArrow.gameObject.SetActive(true);
         gameStart = true;
-        
+
+        if (PlayerNetwork.Instance.isMultiplayerGame)
+            photonView.RPC("CheckEnemyName", PhotonTargets.Others, PlayerNetwork.Instance.PlayerName);
+
         enemyBg = GameObject.Find("Enemy_field").GetComponent<Battleground>();
+    }
+    [PunRPC]
+    private void CheckEnemyName(string name)
+    {
+        ShipController.WaitingText.text = name;
     }
 
     // +++ ВЫСТРЕЛ +++
@@ -220,13 +224,10 @@ public class InitializeUser : Photon.MonoBehaviour
             {
                 if (coords.x == x && coords.y == y && sh.ShootsRemaining > 0)
                 {
-                    print("HiiiiiiiiiiiiiT! " + coords.x + ", " + coords.y + " | Lives " + sh.ShootsRemaining);
                     sh.ShootsRemaining--;
-
-                    Debug.Log(sh.ShootsRemaining + " ships left " + ShipController.ShipListing.Count);
+                    
                     if (sh.ShootsRemaining == 0)
                     {
-                        Debug.Log("Remove ship");
                         ShipController.ShipListing.Remove(sh);
                         if (ShipController.ShipListing.Count == 0)
                         {

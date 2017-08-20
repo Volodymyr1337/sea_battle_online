@@ -4,11 +4,22 @@ public class Arsenal : MonoBehaviour
 {
     public GameObject ArsenalPanel;     // Панель с вооружением
     RectTransform ArsenalTransform;     // её позиционирование
-    bool reposition = true;             // флаг для позиционирования панели
+    public bool reposition = true;      // флаг для позиционирования панели
     public float Speed;                 // !! 1000 должна без остатка делиться на скорость!!    
+
+    private static Arsenal _instance;
+    public static Arsenal Instance
+    {
+        get
+        {
+            return _instance;
+        }
+    }
 
     private void Start()
     {
+        _instance = this;
+
         ArsenalTransform = ArsenalPanel.GetComponent<RectTransform>();
     }
     //
