@@ -149,13 +149,14 @@ public class InitializeUser : Photon.MonoBehaviour
         ShipController.SetShipPosPanel.SetActive(false);
         ShipController.BattleSceneCanvas.SetActive(true);
         ShipController.EnemyField.SetActive(true);
+        ShipController.EnemyFieldHits.SetActive(true);
         ShipController.StepArrow.gameObject.SetActive(true);
         gameStart = true;
 
         if (PlayerNetwork.Instance.isMultiplayerGame)
             photonView.RPC("CheckEnemyName", PhotonTargets.Others, PlayerNetwork.Instance.PlayerName);
 
-        enemyBg = GameObject.Find("Enemy_field").GetComponent<Battleground>();
+        enemyBg = GameObject.Find("Enemy_field_hits").GetComponent<Battleground>();
     }
     [PunRPC]
     private void CheckEnemyName(string name)
@@ -174,7 +175,7 @@ public class InitializeUser : Photon.MonoBehaviour
         int xR = (packed_data >> 4) & mask;
         int yR = packed_data & mask;
 
-        Battleground myBg = GameObject.Find("Battle_field").GetComponent<Battleground>();
+        Battleground myBg = GameObject.Find("Battle_field_hits").GetComponent<Battleground>();
         
         allowFire = true;
         ShipController.StepArrow.color = new Color(0f, 255f, 0f);

@@ -41,7 +41,7 @@ public class SinglePlayer : InitializeUser
         gameStart = false;
         ShipController.StepArrow.color = new Color(0f, 255f, 0f);
         allowFire = true;
-        myBg = GameObject.Find("Battle_field").GetComponent<Battleground>();
+        myBg = GameObject.Find("Battle_field_hits").GetComponent<Battleground>();
 
         OnClickNext = new StartSinglePlay(StartPlay);
 
