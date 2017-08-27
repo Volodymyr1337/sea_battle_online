@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: a0d0d9845d9da0746b122907f9bb2e04
+timeCreated: 1503740571
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: peels
+  fontNames:
+  - peels
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

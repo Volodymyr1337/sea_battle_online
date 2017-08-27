@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: 190362963ca6e8c43ab177a1a890d9bd
+timeCreated: 1503740837
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Fine College
+  fontNames:
+  - Fine College
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
