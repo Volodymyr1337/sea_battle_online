@@ -1,0 +1,21 @@
+fileFormatVersion: 2
+guid: b4744eecb7a59464faca884010a638b1
+timeCreated: 1503740837
+licenseType: Free
+TrueTypeFontImporter:
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: Booklet Cordel
+  fontNames:
+  - Booklet Cordel
+  fallbackFontReferences: []
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

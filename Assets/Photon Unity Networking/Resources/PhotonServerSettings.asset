@@ -48,4 +48,5 @@ MonoBehaviour:
   - AllowFiring
   - GameOver
   - CheckEnemyName
+  - ShowDestrdoyedShip
   DisableAutoOpenWizard: 1

@@ -9,7 +9,7 @@ using System;
 public class Battleground : MonoBehaviour
 {
     //
-    // 'battle_field' отрисовывает только попадания/промахи
+    // 'Battle_field_hits' отрисовывает только попадания/промахи
     // корабли же находятся над 'default_field' и под вышеуказанным слоем
     //
     public int size_X = 10;
@@ -127,7 +127,7 @@ public class Battleground : MonoBehaviour
             for (int x = 0; x < size_X; x++)
             {
                 Color[] col;
-                if (gameObject.name != "Battle_field")
+                if (this.gameObject.name != "Battle_field_hits" && this.gameObject.name != "Enemy_field_hits")
                 {
                     col = tileTexture.GetPixels(0, 0, tileResolution, tileResolution);
                 }
@@ -149,7 +149,7 @@ public class Battleground : MonoBehaviour
         - У дефолтного поля             = 0
         - у поля с выстрелами/промахами = 2
         */
-        if (gameObject.name == "Battle_field")
+        if (gameObject.name == "Battle_field_hits" || gameObject.name == "Enemy_field_hits")
             mesh_renderer.sortingOrder = 2;
         else
             mesh_renderer.sortingOrder = 0;
@@ -170,7 +170,7 @@ public class Battleground : MonoBehaviour
 
                 Color[] col;
 
-                if (gameObject.name == "Battle_field")
+                if (gameObject.name == "Battle_field_hits" || gameObject.name == "Enemy_field_hits")
                 {
                     col = BattleFieldArray[i, j] == -1 ? noneTexture.GetPixels(0, 0, tileResolution, tileResolution) :
                           BattleFieldArray[i, j] == 1  ? hitTexture.GetPixels (0, 0, tileResolution, tileResolution) :

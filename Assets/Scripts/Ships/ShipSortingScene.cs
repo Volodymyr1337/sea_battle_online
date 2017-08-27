@@ -44,6 +44,7 @@ public class ShipSortingScene : MonoBehaviour
     public GameObject SetShipPosPanel;      // панель расстановки кораблей
     public GameObject BattleSceneCanvas;    // ui боевой сцены
     public GameObject EnemyField;           // Поле врага
+    public GameObject EnemyFieldHits;           // Поле врага с выстрелами
 
     public Image StepArrow;                 // стрелка показывающая чей сейчас ход
 

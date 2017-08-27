@@ -7,7 +7,9 @@ public class GameOverWindow : MonoBehaviour
 {
     public Text PlayerWonLabel;
 
-    public Image currUserAvatar;
+    public Image currUserAvatar;    // пока не используется
+    public Slider expLine;       // пока не используется
+
     public Text currPlayerLabel;
     
     public Text player1GridPlayerName;
@@ -22,7 +24,7 @@ public class GameOverWindow : MonoBehaviour
     public Text currPlayerLvl;
     public Text enemyPlayerLvl;
 
-    public Slider expLine;
+   
 
     private static GameOverWindow instance;
     public static GameOverWindow Instance
@@ -46,7 +48,8 @@ public class GameOverWindow : MonoBehaviour
         currExpRecived.text = hashparams["userExp"] as string;
         enemyExpRecived.text = hashparams["aiExp"] as string;
 
-        expLine.value = PlayerPrefs.GetInt("usrExpirience") % 100;
+       // expLine.value = PlayerPrefs.GetInt("usrExpirience") % 100;
+
         currPlayerLvl.text = (PlayerPrefs.GetInt("usrExpirience") / 100).ToString();
         enemyPlayerLvl.text = (PlayerPrefs.GetInt("AiExpirience") / 100).ToString();
     }
@@ -61,7 +64,7 @@ public class GameOverWindow : MonoBehaviour
         currExpRecived.text = ShipSortingScene.Instance.ShipListing.Count > 0 ? ((10 - shipsKilled) * 3).ToString() : ((10 - shipsKilled) * 1.3).ToString();
         enemyExpRecived.text = ShipSortingScene.Instance.ShipListing.Count > 0 ? ((10 - ShipSortingScene.Instance.ShipListing.Count) * 1.3).ToString() : ((10 - ShipSortingScene.Instance.ShipListing.Count) * 3).ToString();
 
-        expLine.value = PlayerPrefs.GetInt("usrExpirience") % 100;
+       // expLine.value = PlayerPrefs.GetInt("usrExpirience") % 100;
         currPlayerLvl.text = (PlayerPrefs.GetInt("usrExpirience") / 100).ToString();
         enemyPlayerLvl.text = (scndUsrExp / 100).ToString();
 

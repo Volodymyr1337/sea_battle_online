@@ -43,11 +43,13 @@ public class InitializeUser : Photon.MonoBehaviour
         if (PhotonNetwork.isMasterClient)
         {
             ShipController.StepArrow.color = new Color(0f, 255f, 0f);
+            ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
             allowFire = true;
         }            
         else
         {
             ShipController.StepArrow.color = new Color(255f, 0f, 0f);
+            ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
             allowFire = false;
         }
             
@@ -130,9 +132,10 @@ public class InitializeUser : Photon.MonoBehaviour
 
         allowFire = false;
         ShipController.StepArrow.color = new Color(255f, 0f, 0f);
-
+        ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+        ShipController.StepArrow.GetComponent<UIScale>().Play();
         // записываем в порядке от левого нижнего угла к правому верхнему
-         return ( (xL << 12) | (yL << 8) | (xR << 4) | yR );
+        return ( (xL << 12) | (yL << 8) | (xR << 4) | yR );
     }
     //
     // старт игры когда все игроки нажмут кнопку "готовы"
@@ -149,13 +152,14 @@ public class InitializeUser : Photon.MonoBehaviour
         ShipController.SetShipPosPanel.SetActive(false);
         ShipController.BattleSceneCanvas.SetActive(true);
         ShipController.EnemyField.SetActive(true);
+        ShipController.EnemyFieldHits.SetActive(true);
         ShipController.StepArrow.gameObject.SetActive(true);
         gameStart = true;
 
         if (PlayerNetwork.Instance.isMultiplayerGame)
             photonView.RPC("CheckEnemyName", PhotonTargets.Others, PlayerNetwork.Instance.PlayerName);
 
-        enemyBg = GameObject.Find("Enemy_field").GetComponent<Battleground>();
+        enemyBg = GameObject.Find("Enemy_field_hits").GetComponent<Battleground>();
     }
     [PunRPC]
     private void CheckEnemyName(string name)
@@ -174,11 +178,12 @@ public class InitializeUser : Photon.MonoBehaviour
         int xR = (packed_data >> 4) & mask;
         int yR = packed_data & mask;
 
-        Battleground myBg = GameObject.Find("Battle_field").GetComponent<Battleground>();
+        Battleground myBg = GameObject.Find("Battle_field_hits").GetComponent<Battleground>();
         
         allowFire = true;
         ShipController.StepArrow.color = new Color(0f, 255f, 0f);
-
+        ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+        ShipController.StepArrow.GetComponent<UIScale>().Play();
         // стрельба запрещена, если есть хоть одно попадание
         for (int j = yL; j <= yR; j++)
             for (int i = xL; i <= xR; i++)
@@ -187,6 +192,8 @@ public class InitializeUser : Photon.MonoBehaviour
                 {
                     allowFire = false;
                     ShipController.StepArrow.color = new Color(255f, 0f, 0f);
+                    ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+                    ShipController.StepArrow.GetComponent<UIScale>().Play();
                     photonView.RPC("AllowFiring", PhotonTargets.Others, true);
                     break;
                 }
@@ -228,6 +235,8 @@ public class InitializeUser : Photon.MonoBehaviour
                     
                     if (sh.ShootsRemaining == 0)
                     {
+                        photonView.RPC("ShowDestrdoyedShip", PhotonTargets.Others, sh.Coords[0].x, sh.Size > 1 ? sh.Coords[1].x : 0, sh.Size, sh.Coords[0].y);
+
                         ShipController.ShipListing.Remove(sh);
                         if (ShipController.ShipListing.Count == 0)
                         {
@@ -257,6 +266,8 @@ public class InitializeUser : Photon.MonoBehaviour
     {
         allowFire = allow;
         ShipController.StepArrow.color = new Color(0f, 255f, 0f);
+        ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+        ShipController.StepArrow.GetComponent<UIScale>().Play();
     }
     [PunRPC]
     private void GameOver(string scndUser, int shipsKilled, int usrExp)
@@ -267,6 +278,33 @@ public class InitializeUser : Photon.MonoBehaviour
             ShipSortingScene.GameOverEvent();
             gameStart = false;
             GameOverWindow.Instance.GameOver(scndUser, shipsKilled, usrExp);
+        }
+    }
+
+    [PunRPC]
+    private void ShowDestrdoyedShip(int x0, int x1, int size, int y)
+    {
+        // отображение уничтоженых вражеских кораблей
+        if (size > 1)
+        {
+            Debug.Log("default size " + size + " " + x0 + " " + x1);
+
+            if (x0 == x1)
+            {
+                GameObject destroyedShip = Instantiate(Resources.Load(size.ToString())) as GameObject;
+                destroyedShip.transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+                destroyedShip.transform.position = new Vector3(x0 + 1.5f, y + size / 2f + 0f);
+            }
+            else
+            {
+                GameObject destroyedShip = Instantiate(Resources.Load(size.ToString())) as GameObject;
+                destroyedShip.transform.position = new Vector3(x0 + size / 2f + 1f, y + 0.5f);
+            }
+        }
+        else
+        {
+            GameObject destroyedShip = Instantiate(Resources.Load(size.ToString())) as GameObject;
+            destroyedShip.transform.position = new Vector3(x0 + size / 2f + 1f, y + 0.5f);
         }
     }
 }

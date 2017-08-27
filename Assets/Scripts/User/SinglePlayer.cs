@@ -40,8 +40,9 @@ public class SinglePlayer : InitializeUser
         isReady = false;
         gameStart = false;
         ShipController.StepArrow.color = new Color(0f, 255f, 0f);
+        ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
         allowFire = true;
-        myBg = GameObject.Find("Battle_field").GetComponent<Battleground>();
+        myBg = GameObject.Find("Battle_field_hits").GetComponent<Battleground>();
 
         OnClickNext = new StartSinglePlay(StartPlay);
 
@@ -114,6 +115,33 @@ public class SinglePlayer : InitializeUser
                                         ShipController.AIShipListing[index].IsAlive = false;
                                         AiShipsLeft--;
                                         userKills++;
+                                        // отображение уничтоженых вражеских кораблей
+                                        if (ShipController.AIShipListing[index].Size > 1)
+                                        {
+                                            Debug.Log("default size " + ShipController.AIShipListing[index].Size + " " + ShipController.AIShipListing[index].Coords[0] + " " + ShipController.AIShipListing[index].Coords[1]);
+
+                                            if (ShipController.AIShipListing[index].Coords[0].x == ShipController.AIShipListing[index].Coords[1].x)
+                                            {
+                                                GameObject destroyedShip = Instantiate(Resources.Load(ShipController.AIShipListing[index].Size.ToString())) as GameObject;
+                                                destroyedShip.transform.rotation = Quaternion.Euler(0f, 90f, 0f);
+                                                destroyedShip.transform.position = new Vector3(ShipController.AIShipListing[index].Coords[0].x + 1f,
+                                                    ShipController.AIShipListing[index].Coords[0].y + ShipController.AIShipListing[index].Size / 2f + 0.5f);
+                                            }
+                                            else
+                                            {
+                                                
+                                                GameObject destroyedShip = Instantiate(Resources.Load(ShipController.AIShipListing[index].Size.ToString())) as GameObject;
+                                                destroyedShip.transform.position = new Vector3(ShipController.AIShipListing[index].Coords[0].x + ShipController.AIShipListing[index].Size/ 2f + 1f, 
+                                                    ShipController.AIShipListing[index].Coords[0].y + 0.5f);
+                                            }
+                                                
+                                        }
+                                        else
+                                        {
+                                            GameObject destroyedShip = Instantiate(Resources.Load(ShipController.AIShipListing[index].Size.ToString())) as GameObject;
+                                            destroyedShip.transform.position = new Vector3(ShipController.AIShipListing[index].Coords[0].x + ShipController.AIShipListing[index].Size / 2f + 1f,
+                                                ShipController.AIShipListing[index].Coords[0].y + 0.5f);
+                                        }                                        
                                     }
 
                                 }
@@ -164,6 +192,8 @@ public class SinglePlayer : InitializeUser
         {
             allowFire = true;
             ShipController.StepArrow.color = new Color(0f, 255f, 0f);
+            ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+            ShipController.StepArrow.GetComponent<UIScale>().Play();
         }
         else
         {
@@ -381,6 +411,8 @@ public class SinglePlayer : InitializeUser
         {
             allowFire = true;
             ShipController.StepArrow.color = new Color(0f, 255f, 0f);
+            ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
+            ShipController.StepArrow.GetComponent<UIScale>().Play();
         }
     }
 }
