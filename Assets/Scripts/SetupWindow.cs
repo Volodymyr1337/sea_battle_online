@@ -13,7 +13,7 @@ public class SetupWindow : MonoBehaviour
     {
         userName.text = PlayerPrefs.HasKey("userName") ? PlayerPrefs.GetString("userName") : "";
         expBar.value = PlayerPrefs.HasKey("usrExpirience") ? PlayerPrefs.GetInt("usrExpirience") % 100 : 0;
-        lvlLabel.text = PlayerPrefs.HasKey("usrExpirience") ? (PlayerPrefs.GetInt("usrExpirience") / 100).ToString() : "0";
+        lvlLabel.text = "R a n k: " + (PlayerPrefs.HasKey("usrExpirience") ? (PlayerPrefs.GetInt("usrExpirience") / 100).ToString() : "0");
     }
 
     public void SetUserName()
