@@ -26,6 +26,8 @@ public class MainCanvas : MonoBehaviour
 
     public void LeaveToMenu()            // выход в меню
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+
         PhotonNetwork.Disconnect();
         SceneManager.LoadScene("MainMenu");
     }

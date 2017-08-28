@@ -185,20 +185,25 @@ public class InitializeUser : Photon.MonoBehaviour
         ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
         ShipController.StepArrow.GetComponent<UIScale>().Play();
         // стрельба запрещена, если есть хоть одно попадание
+        int hitcounter = 0;
         for (int j = yL; j <= yR; j++)
             for (int i = xL; i <= xR; i++)
             {
                 if (ships[i, j] == 1)
                 {
+                    hitcounter++;
                     allowFire = false;
                     ShipController.StepArrow.color = new Color(255f, 0f, 0f);
                     ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
                     ShipController.StepArrow.GetComponent<UIScale>().Play();
                     photonView.RPC("AllowFiring", PhotonTargets.Others, true);
+                    if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.Play("Hit");
                     break;
                 }
             }
-        
+        if (hitcounter == 0)
+            if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.Play("Miss", 0.6f);
+
         // отправляем информацию о попаданиях/промахах
         for (int j = yL; j <= yR; j++)
             for (int i = xL; i <= xR; i++)
@@ -264,6 +269,7 @@ public class InitializeUser : Photon.MonoBehaviour
     [PunRPC]
     private void AllowFiring(bool allow)    // разрешаем/запрещаем стрельбу
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.Play(allow ? "Hit" : "Miss", 0.6f);
         allowFire = allow;
         ShipController.StepArrow.color = new Color(0f, 255f, 0f);
         ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);

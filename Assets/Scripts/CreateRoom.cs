@@ -12,6 +12,8 @@ public class CreateRoom : MonoBehaviour
 
     public void OnClick_CreateRoom()
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+
         RoomOptions roomOptions = new RoomOptions() { IsVisible = true, IsOpen = true, MaxPlayers = 2 };
 
         if (PhotonNetwork.CreateRoom(RoomName.text, roomOptions, TypedLobby.Default))

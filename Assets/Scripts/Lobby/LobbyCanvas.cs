@@ -13,6 +13,8 @@ public class LobbyCanvas : MonoBehaviour
 
     public void OnClickJoinRoom(string roomName)
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+
         if (PhotonNetwork.JoinRoom(roomName))
             print("join room success!");
         else

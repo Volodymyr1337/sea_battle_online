@@ -306,6 +306,8 @@ public class ShipSortingScene : MonoBehaviour
     //
     public void ChooseShipBtn(int Key)          
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+
         if (ship == null)
         {
             GameObject go = PoolManager.Instance.GetShip(Key);
@@ -323,6 +325,8 @@ public class ShipSortingScene : MonoBehaviour
     //
     public void RotateBtn()
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+
         if (ship != null)
         {
             ship.transform.Rotate(0, 0, 90);
@@ -333,6 +337,8 @@ public class ShipSortingScene : MonoBehaviour
     //
     public void AutoPlacement()         
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+
         // задержка на случай, если корутина медленно выполняется
         if ((Time.time - timeAutoPlaceClicked) > .3f)       
         {
@@ -355,6 +361,8 @@ public class ShipSortingScene : MonoBehaviour
     //
     public void ResetButton()           
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+        
         if (ship == null)
         {
             firstClick = true;
@@ -525,6 +533,8 @@ public class ShipSortingScene : MonoBehaviour
     //
     public void NextButton()        
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+
         if (ShipListing.Count < bg.size_X)     // если не все корабли на местах
             return;
         
@@ -547,6 +557,8 @@ public class ShipSortingScene : MonoBehaviour
     //
     public void OnChangeWeaponParams(int area)
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+
         PlayerNetwork.Instance.RapidFire(area);
     }
     public void OnChangeWeaponBtnId(int id)         // под курсор мыши подставляется спрайт прицела выбранного орудия
@@ -565,6 +577,8 @@ public class ShipSortingScene : MonoBehaviour
     //
     public void OnClickLeaveGame()
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+
         if (PlayerNetwork.Instance.isMultiplayerGame)
         {
             PhotonNetwork.LeaveRoom();
