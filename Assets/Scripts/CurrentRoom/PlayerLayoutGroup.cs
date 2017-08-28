@@ -91,6 +91,7 @@ public class PlayerLayoutGroup : MonoBehaviour
     {
         if (!PhotonNetwork.isMasterClient)
             return;
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
 
         PhotonNetwork.room.IsOpen = !PhotonNetwork.room.IsOpen;
         PhotonNetwork.room.IsVisible = PhotonNetwork.room.IsOpen;
@@ -100,6 +101,8 @@ public class PlayerLayoutGroup : MonoBehaviour
     //
     public void OnClickLeaveRoom()
     {
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
+
         PhotonNetwork.LeaveRoom();
     }
 }

@@ -150,7 +150,7 @@ public class SinglePlayer : InitializeUser
                     }
                     enemyBg.BattleFieldUpdater(i, j, true);
                     usrHits++;
-
+                    
                     if (AiShipsLeft == 0)
                     {
                         ShipSortingScene.GameOverEvent();
@@ -194,9 +194,11 @@ public class SinglePlayer : InitializeUser
             ShipController.StepArrow.color = new Color(0f, 255f, 0f);
             ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);
             ShipController.StepArrow.GetComponent<UIScale>().Play();
+            if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.Play("Hit");
         }
         else
         {
+            if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.Play("Miss", 0.6f);
             StartCoroutine(AiShootingCooldown());
         }
     }
@@ -359,7 +361,9 @@ public class SinglePlayer : InitializeUser
                         }
                     }
                     AiHits++;
+
                     
+
                     myBg.BattleFieldUpdater(i, j, true);
                     if (UsrShipsLeft == 0)
                     {
@@ -394,7 +398,8 @@ public class SinglePlayer : InitializeUser
                 }
                 else
                 {
-                    myBg.BattleFieldUpdater(i, j, false);                   
+                    myBg.BattleFieldUpdater(i, j, false);
+                   
                 }
             }
         // Удаляем валыну если её кол-во = 0
@@ -406,9 +411,11 @@ public class SinglePlayer : InitializeUser
         {
             allowFire = false;
             AIshooting();
+            if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.Play("Hit");
         }
         else
         {
+            if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.Play("Miss", 0.6f);
             allowFire = true;
             ShipController.StepArrow.color = new Color(0f, 255f, 0f);
             ShipController.StepArrow.transform.localRotation = Quaternion.Euler(0f, 0f, 0f);

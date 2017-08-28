@@ -9,6 +9,7 @@ public class CurrentRoomCanvas : MonoBehaviour
     {
         if (!PhotonNetwork.isMasterClient)
             return;
+        if (PlayerPrefs.GetInt("Sound") == 1) SoundManager.Instance.ClickButton();
 
         PhotonNetwork.room.IsOpen = false;
         PhotonNetwork.room.IsVisible = false;
