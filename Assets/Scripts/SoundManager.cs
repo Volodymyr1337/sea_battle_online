@@ -17,6 +17,14 @@ public class SoundManager : MonoBehaviour
 
     [SerializeField] private AudioSource AudioSource;
     [SerializeField] private List<AudioClip> AudioClips;
+    [SerializeField] private AudioSource mainSongSource;
+
+
+    private void Start()
+    {
+        if (PlayerPrefs.GetInt("Music") == 0)
+            mainSongSource.Stop();
+    }
 
     /// <summary>
     /// Нажатие на кнопку
@@ -35,5 +43,13 @@ public class SoundManager : MonoBehaviour
             AudioSource.PlayOneShot(AudioClips.Find(x => x.name == sound), volume);
         else
             Debug.LogError("Массив аудиоклипов пуст!");
+    }
+
+    public void MainSongMute()
+    {
+        if (mainSongSource.isPlaying)
+            mainSongSource.Stop();
+        else
+            mainSongSource.Play();            
     }
 }

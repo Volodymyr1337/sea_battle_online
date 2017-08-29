@@ -28,6 +28,9 @@ public class PlayerNetwork : MonoBehaviour
         if (!PlayerPrefs.HasKey("Sound"))
             PlayerPrefs.SetInt("Sound", 1);
 
+        if (!PlayerPrefs.HasKey("Music"))
+            PlayerPrefs.SetInt("Music", 1);
+
         PlayerName = PlayerPrefs.GetString("userName");
 
 
