@@ -53,7 +53,7 @@ public class Battleground : MonoBehaviour
 
     private void Start()
     {
-       // BuildMesh();        
+        BuildMesh();        
     }
 
     public void BuildMesh()

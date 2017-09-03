@@ -118,7 +118,7 @@ public class SinglePlayer : InitializeUser
                                         // отображение уничтоженых вражеских кораблей
                                         if (ShipController.AIShipListing[index].Size > 1)
                                         {
-                                            Debug.Log("default size " + ShipController.AIShipListing[index].Size + " " + ShipController.AIShipListing[index].Coords[0] + " " + ShipController.AIShipListing[index].Coords[1]);
+                                           // Debug.Log("default size " + ShipController.AIShipListing[index].Size + " " + ShipController.AIShipListing[index].Coords[0] + " " + ShipController.AIShipListing[index].Coords[1]);
 
                                             if (ShipController.AIShipListing[index].Coords[0].x == ShipController.AIShipListing[index].Coords[1].x)
                                             {
