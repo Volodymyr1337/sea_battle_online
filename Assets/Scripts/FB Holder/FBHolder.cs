@@ -5,25 +5,24 @@ using Facebook.Unity;
 
 public class FBHolder : MonoBehaviour
 {
-    
-
-    public void FacebookInit()
+    private void Awake()
     {
-        FB.Init(SetInit, OnHideUnity);
+        if (!FB.IsInitialized)
+        {
+            // Initialize the Facebook SDK
+            FB.Init(SetInit, OnHideUnity);
+        }
+        else
+        {
+            // Already initialized, signal an app activation App Event
+            FB.ActivateApp();
+        }
     }
 
     private void SetInit()
     {
         Debug.Log("FB init done.");
-
-        if (FB.IsLoggedIn)
-        {
-            Debug.Log("logged in!");
-        }
-        else
-        {
-            FBLogin();
-        }
+        
     }
 
     private void OnHideUnity(bool isGameShown)
@@ -38,15 +37,27 @@ public class FBHolder : MonoBehaviour
         }
     }
 
-    private void FBLogin()
+    public void FBLogin()
     {
-        FB.LogInWithPublishPermissions(new string[] { "public_profile" }, AuthCallback);
+        if (FB.IsLoggedIn)
+        {
+            Debug.Log("logged!");
+        }
+        else
+        {
+            FB.LogInWithReadPermissions(new string[] { "public_profile" }, AuthCallback);
+        }
+        
     }
 
     private void AuthCallback(ILoginResult result)
     {
         if (FB.IsLoggedIn)
         {
+            var aToken = Facebook.Unity.AccessToken.CurrentAccessToken;
+            // Print current access token's User ID
+            Debug.Log(aToken.UserId);
+
             Debug.Log("Login success!");
             FB.API("/me?fields=name", HttpMethod.GET, GetName);
             // та хз надо ли?
