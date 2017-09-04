@@ -1,10 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using UnityEngine.UI;
 using UnityEngine;
 using Facebook.Unity;
 
 public class FBHolder : MonoBehaviour
 {
+    public Image Avatar;
+
     private void Awake()
     {
         if (!FB.IsInitialized)
@@ -60,8 +61,7 @@ public class FBHolder : MonoBehaviour
 
             Debug.Log("Login success!");
             FB.API("/me?fields=name", HttpMethod.GET, GetName);
-            // та хз надо ли?
-            //FB.API("me/picture?type=square&height=128&width=128", HttpMethod.GET, GetPicture);
+            FB.API("me/picture?type=square&height=128&width=128", HttpMethod.GET, GetPicture);
         }
         else
         {
@@ -86,7 +86,7 @@ public class FBHolder : MonoBehaviour
     {
         if (result.Error == null && result.Texture != null)
         {
-            //Avatarka.sprite = Sprite.Create(result.Texture, new Rect(0, 0, 128, 128), new Vector2());
+            Avatar.sprite = Sprite.Create(result.Texture, new Rect(0, 0, 128, 128), new Vector2());
         }
     }
 }
