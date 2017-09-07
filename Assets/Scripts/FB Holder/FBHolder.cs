@@ -6,11 +6,14 @@ using System.Collections.Generic;
 
 public class FBHolder : MonoBehaviour
 {
-    public Image Avatar;    // мой аватар
+    public Image Avatar;                // мой аватар
+
+    public GameObject FriendGrid;       // контейнер с друзьями
+    public GameObject FriendPrefab;     // префаб друга
 
     private string FriendsText;
 
-    object data;            // данные о друзьях, полученные гет запросом
+    object data;                        // данные о друзьях, полученные гет запросом
 
     private void Awake()
     {
@@ -85,7 +88,7 @@ public class FBHolder : MonoBehaviour
             FB.API("/me?fields=name", HttpMethod.GET, GetName);
             FB.API("/me/picture?type=square&height=128&width=128", HttpMethod.GET, GetPicture);
             FB.API("/me/friends?fields=id,name", HttpMethod.GET, GetFriends);
-            FBShare();
+            
         }
         else
         {
@@ -116,8 +119,7 @@ public class FBHolder : MonoBehaviour
     // Получить список друзей
     private void GetFriends(IGraphResult result)
     {
-        FriendsText = string.Empty;
-        
+        FriendsText = string.Empty;       
        
         List<object> dataList = new List<object>();
         if (result.ResultDictionary.TryGetValue("data", out data))
@@ -125,7 +127,12 @@ public class FBHolder : MonoBehaviour
         
         foreach (Dictionary<string, object> obj in dataList)
         {
-            FriendsText += obj["name"].ToString() + " | ";
+            GameObject friend = Instantiate(FriendPrefab, FriendGrid.transform);
+
+            FB.API("https" + "://graph.facebook.com/" + obj["id"].ToString() + "/picture?width=128&height=128", HttpMethod.GET, delegate (IGraphResult res)
+            {
+                friend.GetComponent<FBFriend>().Initialization(Sprite.Create(res.Texture, new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 100), obj["name"].ToString());
+            });
         }
         Debug.Log(FriendsText + " " + dataList.Count);
     }
