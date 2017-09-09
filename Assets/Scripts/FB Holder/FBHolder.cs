@@ -10,9 +10,7 @@ public class FBHolder : MonoBehaviour
 
     public GameObject FriendGrid;       // контейнер с друзьями
     public GameObject FriendPrefab;     // префаб друга
-
-    private string FriendsText;
-
+    
     object data;                        // данные о друзьях, полученные гет запросом
 
     private void Awake()
@@ -32,6 +30,7 @@ public class FBHolder : MonoBehaviour
         if (FB.IsLoggedIn)
         {
             FB.API("me/picture?type=square&height=128&width=128", HttpMethod.GET, GetPicture);
+            FB.API("/me/friends?fields=id,name", HttpMethod.GET, GetFriends);
         }
     }
 
@@ -70,14 +69,25 @@ public class FBHolder : MonoBehaviour
 
     public void FBLogin()
     {
-        if (FB.IsLoggedIn)
+        if (!FB.IsLoggedIn)
         {
-            FBShare();
+            FB.LogInWithReadPermissions(new string[] { "public_profile", "user_friends" }, AuthCallback);
         }
         else
         {
-            FB.LogInWithReadPermissions(new string[] { "public_profile", "user_friends" }, AuthCallback);
-        }        
+            FB.ShareLink(
+                contentURL: new Uri("https://apps.facebook.com/1523369521039804"),
+                contentTitle: "Let's play",
+                contentDescription: "Play online with your friends",
+                photoURL: new Uri("https://drive.google.com/open?id=0B3P-N9XGUZvQQlZjbkQ1b2pRMzA"),
+                callback: delegate(IShareResult result) 
+                {
+                    if (result.Error != null)
+                    {
+                        Debug.LogError(result.Error);
+                    }
+                });
+        }
     }
 
     private void AuthCallback(ILoginResult result)
@@ -87,8 +97,7 @@ public class FBHolder : MonoBehaviour
             Debug.Log("Login success!");
             FB.API("/me?fields=name", HttpMethod.GET, GetName);
             FB.API("/me/picture?type=square&height=128&width=128", HttpMethod.GET, GetPicture);
-            FB.API("/me/friends?fields=id,name", HttpMethod.GET, GetFriends);
-            
+            FB.API("/me/friends?fields=id,name", HttpMethod.GET, GetFriends);            
         }
         else
         {
@@ -104,8 +113,13 @@ public class FBHolder : MonoBehaviour
         }
         else
         {
-            PlayerNetwork.Instance.PlayerName = result.ResultDictionary["name"].ToString();
-            PlayerPrefs.SetString("userName", result.ResultDictionary["name"].ToString());
+            // записываем имя, если абонент ещё не определился какой логин придумать
+            if (PlayerPrefs.GetString("userName") == null || PlayerPrefs.GetString("userName") == "unnamed")
+            {
+                PlayerNetwork.Instance.PlayerName = result.ResultDictionary["name"].ToString();
+                PlayerPrefs.SetString("userName", result.ResultDictionary["name"].ToString());
+            }
+                
         }
     }
 
@@ -119,8 +133,6 @@ public class FBHolder : MonoBehaviour
     // Получить список друзей
     private void GetFriends(IGraphResult result)
     {
-        FriendsText = string.Empty;       
-       
         List<object> dataList = new List<object>();
         if (result.ResultDictionary.TryGetValue("data", out data))
             dataList = (List<object>)data;
@@ -128,63 +140,13 @@ public class FBHolder : MonoBehaviour
         foreach (Dictionary<string, object> obj in dataList)
         {
             GameObject friend = Instantiate(FriendPrefab, FriendGrid.transform);
-
             FB.API("https" + "://graph.facebook.com/" + obj["id"].ToString() + "/picture?width=128&height=128", HttpMethod.GET, delegate (IGraphResult res)
             {
-                friend.GetComponent<FBFriend>().Initialization(Sprite.Create(res.Texture, new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 100), obj["name"].ToString());
+                friend.GetComponent<FBFriend>().Initialization(
+                    Sprite.Create(res.Texture, new Rect(0, 0, 128, 128), new Vector2(0.5f, 0.5f), 100), 
+                    obj["name"].ToString(), 
+                    obj["id"].ToString() );
             });
-        }
-        Debug.Log(FriendsText + " " + dataList.Count);
-    }
-
-    #region FB Share
-
-    public void FBShare()
-    {
-        if (FB.IsLoggedIn)
-        {
-            FB.ShareLink(
-                contentURL: new Uri("https://apps.facebook.com/1523369521039804"), 
-                contentTitle: "Let's play", 
-                contentDescription: "Play online with your friends", 
-                photoURL: new Uri("https://scontent-frx5-1.xx.fbcdn.net/v/t39.2081-0/20991182_1526094697433953_6495329009390321664_n.jpg?oh=f11ba19281f8ffa522b54bb806ce6598&oe=5A604FE6"), 
-                callback: ShareCallback);
-        }
-    }
-    private void ShareCallback(IShareResult result)
-    {
-        if (result.Cancelled || !string.IsNullOrEmpty(result.Error))
-        {
-            Debug.Log("ShareLink Error: " + result.Error);
-        }
-        else if (!string.IsNullOrEmpty(result.PostId))
-        {
-            // Print post identifier of the shared content
-            Debug.Log(result.PostId);
-        }
-        else
-        {
-            // Share succeeded without postID
-            Debug.Log("ShareLink success!");
-        }
-    }
-
-    #endregion
-
-    //FB.AppRequest("Custom message", null, null, null, null, "Data", "Challenge your friends!", ChallengeCallback);
-    void ChallengeCallback(IAppRequestResult result)
-    {
-        if (result.Cancelled)
-        {
-            Debug.Log("Challenge cancelled.");
-        }
-        else if (!string.IsNullOrEmpty(result.Error))
-        {
-            Debug.Log("Error in challenge:" + result.Error);
-        }
-        else
-        {
-            Debug.Log("Challenge was successful:" + result.RawResult);
         }
     }
 }
