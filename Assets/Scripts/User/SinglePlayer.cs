@@ -156,7 +156,7 @@ public class SinglePlayer : InitializeUser
                         ShipSortingScene.GameOverEvent();
                         playersParams.Clear();
                         playersParams.Add("winner", PlayerNetwork.Instance.PlayerName);
-                        playersParams.Add("looser", "Android");
+                        playersParams.Add("looser", "Computer");
                         playersParams.Add("usrKills", userKills.ToString());
                         playersParams.Add("aiKills", aiKills.ToString());
                         playersParams.Add("userExp", (userKills * 2).ToString());
@@ -215,7 +215,7 @@ public class SinglePlayer : InitializeUser
 
         yield return new WaitForSeconds(.2f);   // чисто стратегический кд
 
-        ShipController.WaitingText.text = "Android";
+        ShipController.WaitingText.text = "Computer";
 
         base.StartPlay();
     }
@@ -369,8 +369,8 @@ public class SinglePlayer : InitializeUser
                     {
                         ShipSortingScene.GameOverEvent();
                         playersParams.Clear();
-                        playersParams.Add("winner", "Android");
-                        playersParams.Add("looser", "Android");
+                        playersParams.Add("winner", "Computer");
+                        playersParams.Add("looser", "Computer");
                         playersParams.Add("usrKills", userKills.ToString());
                         playersParams.Add("aiKills", aiKills.ToString());
                         playersParams.Add("userExp", userKills.ToString());
