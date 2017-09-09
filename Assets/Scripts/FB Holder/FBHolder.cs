@@ -13,6 +13,8 @@ public class FBHolder : MonoBehaviour
     
     object data;                        // данные о друзьях, полученные гет запросом
 
+    private const int FRIENDCOUNT = 100; // макс кол-во отображаемых пользователей
+
     private void Awake()
     {
         FBInitialize();
@@ -136,9 +138,15 @@ public class FBHolder : MonoBehaviour
         List<object> dataList = new List<object>();
         if (result.ResultDictionary.TryGetValue("data", out data))
             dataList = (List<object>)data;
-        
+
+        int i = FRIENDCOUNT;
+
         foreach (Dictionary<string, object> obj in dataList)
         {
+            if (i < 0)
+                break;
+            i++;
+
             GameObject friend = Instantiate(FriendPrefab, FriendGrid.transform);
             FB.API("https" + "://graph.facebook.com/" + obj["id"].ToString() + "/picture?width=128&height=128", HttpMethod.GET, delegate (IGraphResult res)
             {
